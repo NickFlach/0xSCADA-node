@@ -12,3 +12,5 @@ pub mod node;
 pub mod validation;
 pub mod rpc;
 pub mod bridge;
+pub mod tuner;
+pub mod telemetry;

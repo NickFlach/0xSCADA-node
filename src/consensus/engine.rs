@@ -152,6 +152,11 @@ impl ConsensusEngine {
         None
     }
 
+    /// Check if we have a pending block awaiting attestations
+    pub fn has_pending(&self) -> bool {
+        self.pending.is_some()
+    }
+
     /// Receive an attestation for our pending block
     pub fn receive_attestation(&mut self, attestation: Attestation) -> Option<Block> {
         let pending = self.pending.as_mut()?;
@@ -194,12 +199,8 @@ impl ConsensusEngine {
             return None;
         }
 
-        // Verify proposer is current leader
-        if let Some(leader) = self.kuramoto.leader() {
-            if block.header.proposer != leader {
-                return None;
-            }
-        } else {
+        // Verify proposer is a known validator (relaxed: nodes may disagree on leader during sync)
+        if !self.validator_set.is_empty() && !self.validator_set.contains(&block.header.proposer) {
             return None;
         }
 

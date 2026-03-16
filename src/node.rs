@@ -160,7 +160,9 @@ impl Node {
                 validator,
                 signature,
             }) => {
+                let has_pending = self.consensus.has_pending();
                 let attestation = Attestation { validator, signature };
+                eprintln!("[oxscada-debug] Attestation received from {:02x}{:02x}..., pending={}", validator[0], validator[1], has_pending);
                 if let Some(finalized) = self.consensus.receive_attestation(attestation) {
                     self.latest_height = finalized.header.height;
                     self.latest_hash = finalized.hash();

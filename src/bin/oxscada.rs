@@ -63,6 +63,15 @@ async fn process_actions(actions: Vec<NodeAction>, peers: &PeerMap) {
     for action in actions {
         match action {
             NodeAction::Broadcast(msg) => {
+                match &msg {
+                    ConsensusMessage::BlockProposal { .. } => {
+                        println!("[oxscada] Broadcasting block proposal");
+                    }
+                    ConsensusMessage::BlockAttestation { block_hash, .. } => {
+                        println!("[oxscada] Broadcasting attestation for block {}", &hex(block_hash)[..16]);
+                    }
+                    _ => {}
+                }
                 let data = msg.serialize();
                 let conns = peers.lock().await;
                 for (addr, conn) in conns.iter() {
@@ -72,11 +81,9 @@ async fn process_actions(actions: Vec<NodeAction>, peers: &PeerMap) {
                 }
             }
             NodeAction::SendTo { node_id, msg } => {
+                println!("[oxscada] SendTo {}: {:?}", &hex(&node_id)[..16], std::mem::discriminant(&msg));
                 let data = msg.serialize();
                 let conns = peers.lock().await;
-                // Find connection by node_id — for now we don't track node_id→addr mapping,
-                // so broadcast to all (TODO: proper routing table)
-                let _ = node_id; // suppress warning
                 for (addr, conn) in conns.iter() {
                     if let Err(e) = Transport::send(conn, &data).await {
                         eprintln!("[oxscada] Failed to send to {addr}: {e}");

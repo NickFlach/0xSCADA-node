@@ -119,6 +119,11 @@ impl Node {
             NodeEvent::ConsensusMsg(ConsensusMessage::PhaseUpdate {
                 node_id, phase, natural_freq, timestamp,
             }) => {
+                // Auto-discover validators from phase updates
+                if !self.validator_set.contains(&node_id) {
+                    self.validator_set.push(node_id);
+                    self.consensus.set_validator_set(self.validator_set.clone());
+                }
                 self.consensus.update_peer_phase(OscillatorState {
                     node_id,
                     phase,

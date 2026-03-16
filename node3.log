@@ -7,178 +7,100 @@
 [oxscada] Connected to peer 170.9.238.136:9000
 [oxscada] Connected to peer 170.9.241.14:9000
 [oxscada] NATS connected, subscribing to scada.events
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 612031016c9648e4b71c8065ad64f0c3d2ff10cdd42f91480c7bc6f867c186fb
 [oxscada] Tick 2: role=leader, r=0.547, peers=1
-[oxscada] Tick 3: role=follower, r=0.552, peers=1
-[oxscada] Tick 4: role=follower, r=0.543, peers=1
-[oxscada] Tick 5: role=follower, r=0.519, peers=1
-[oxscada] Tick 6: role=follower, r=0.378, peers=1
-[oxscada] Tick 7: role=follower, r=0.523, peers=1
-[oxscada] Tick 8: role=follower, r=0.539, peers=1
-[oxscada] Tick 9: role=follower, r=0.400, peers=1
-[oxscada] Tick 10: role=follower, r=0.558, peers=1
-[oxscada] Tick 11: role=follower, r=0.585, peers=1
-[oxscada] Tick 12: role=follower, r=0.425, peers=1
-[oxscada] Tick 13: role=follower, r=0.539, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx 3f11359eac3d27f5d72c3e4838cdea6a8872b001bcfcb4279a53bd88569f7e6f
-[oxscada] Tick 14: role=follower, r=0.582, peers=1
-[oxscada] Tick 15: role=follower, r=0.479, peers=1
-[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 43a25dc10b2c2ba334674ce8ca215e5f2764ea7debcc3241b115380a88ffac68
-[oxscada] Tick 16: role=leader, r=0.457, peers=1
-[oxscada] Tick 17: role=leader, r=0.420, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 3e573be9415992ae078d7c84ca14c5115888c2c00ce022dfe6b97fa07faf357b
-[oxscada] Tick 18: role=leader, r=0.377, peers=1
-[oxscada] Tick 19: role=leader, r=0.370, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx af6ebb9594cc418e47274caa81451fd150865b2a0568eb3a429361af14d46f4d
-[oxscada] Tick 20: role=leader, r=0.365, peers=1
-[oxscada] Tick 21: role=leader, r=0.373, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx d45117dfe1fa4425f671160698eaca872ebb62c3e3bf44314fba888b01483008
-[oxscada] Tick 22: role=leader, r=0.382, peers=1
-[oxscada] Tick 23: role=leader, r=0.393, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx e3426d9d7a22b1d27d31788d0c90ae3bac2a82904db8a969ee1d81b4ed99ba50
-[oxscada] Tick 24: role=leader, r=0.405, peers=1
-[oxscada] Tick 25: role=leader, r=0.421, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx a1112bbf09c8d3c6bdb2df6b1094fed77b124edb2a4a41419e64b2ae2aa3857d
-[oxscada] Tick 26: role=leader, r=0.450, peers=1
-[oxscada] Tick 27: role=leader, r=0.496, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx ab39c6a8ac6acab04eed7c52d483cde0f47eae1590c47fc648c4e08bb7f9135b
-[oxscada] Tick 28: role=follower, r=0.561, peers=1
-[oxscada] Tick 29: role=follower, r=0.638, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 5abfb0fa0cb04d5cbc394d78ed4e1abf7bca06c63346870bcc66370396c5213a
-[oxscada] Tick 30: role=follower, r=0.693, peers=1
-[oxscada] Tick 31: role=follower, r=0.728, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx bc242b30284872ffc030fb5d2a4d5788030e385e733dbf1b9a47c5ded676459e
-[oxscada] Tick 32: role=follower, r=0.760, peers=1
-[oxscada] Tick 33: role=follower, r=0.791, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 2621790b83e327295fb180b9afea47a4f0906c3be728480e4c7f95af5349a21d
-[oxscada] Tick 34: role=follower, r=0.816, peers=1
-[oxscada] Tick 35: role=follower, r=0.831, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 54e7df055f734c7c4346c753e488f3ffda47f13609796776469ace345cb7331a
-[oxscada] Tick 36: role=follower, r=0.840, peers=1
-[oxscada] Tick 37: role=follower, r=0.850, peers=1
-[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx a12b7326eb6b58a5ea3d914a25e04c9d289d13cee0a8de8388d9e35c43506398
-[oxscada] Tick 38: role=follower, r=0.860, peers=1
-[oxscada] Tick 39: role=follower, r=0.842, peers=1
-[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx 047ffe0a5a62f5ff7b6d52e6ba59d4e16507a5edd8dd379d26441f710d399dfc
-[oxscada] Tick 40: role=follower, r=0.788, peers=1
-[oxscada] Tick 41: role=follower, r=0.742, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 4b4f2ec3c9dc07c8f1812c143150db83d8fa0e5a35d59c11fd36e5ea3dd2b3da
-[oxscada] Tick 42: role=follower, r=0.712, peers=1
-[oxscada] Tick 43: role=follower, r=0.690, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx 56962653a8504f27101c192d2631796e2b10dfc828397374148115d342b05bf6
-[oxscada] Tick 44: role=follower, r=0.666, peers=1
-[oxscada] Tick 45: role=follower, r=0.636, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 1930cddbc4e745cafbe5a08753a6533acf7b4090099b61623f3779c750d457df
-[oxscada] Tick 46: role=follower, r=0.598, peers=1
-[oxscada] Tick 47: role=follower, r=0.561, peers=1
-[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx 0a006b839588b8f58f0dd2ac69af07c669a23e7f91ac8103333a0face7c0e8eb
-[oxscada] Tick 48: role=follower, r=0.516, peers=1
-[oxscada] Tick 49: role=follower, r=0.463, peers=1
-[oxscada] Tick 50: role=leader, r=0.419, peers=1
-[oxscada] Tick 51: role=leader, r=0.385, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx fea4b486c6787af4098bcf531d971ebdc6136c2b1268be6fe057d892efb2c720
-[oxscada] Tick 52: role=leader, r=0.377, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx a5e3ddc6554d943da7f15766efe3264bd5bec8b145422c30df0332646c0e57e0
-[oxscada] Tick 53: role=leader, r=0.373, peers=1
-[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx ee21c712ab977a6f66a39f73d18e88f709f6dce630a2639368cbeff758d7941e
-[oxscada] Tick 54: role=leader, r=0.380, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 8fd50f7b6432ae197bf4c14110a317f81c8495b1937af635211827e705e18f0a
-[oxscada] Tick 55: role=leader, r=0.382, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx c91900f539fa455cc6ddfe12b58c5aa6c02d291c5a8bd5ed0e47ea3b202083ce
-[oxscada] Tick 56: role=leader, r=0.387, peers=1
-[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx 4569f2541eed5cf710e033e095ec5fb0351d822933678980d055fc527ce9149b
-[oxscada] Tick 57: role=leader, r=0.397, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx c4efe877347d793478d4f1f10bd4ac1088e18b5674a83b988ad0f8ec816a9648
-[oxscada] Tick 58: role=leader, r=0.422, peers=1
-[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx 199166e774b10adefc8694f9ccef9d598965f33e8a046f25d4b42e6fcaab7e04
-[oxscada] Tick 59: role=leader, r=0.458, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 22f209a5f364ee1d01951aeefe2a512e493aaa9b0f6648004848a1cd5f025a52
-[oxscada] Tick 60: role=follower, r=0.506, peers=1
-[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 213edd5026bc571e6b781c3956f9d6a9fc2779f176ed26d33c83a3d4fd6d4fe9
-[oxscada] Tick 61: role=follower, r=0.563, peers=1
-[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx f413f961978928975e147bb0353a34ed808bc5807b034c5c1cc1868c02249f86
-[oxscada] Tick 62: role=follower, r=0.621, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx 84aab362d2da0f5c800ace7eaf034f070a653663c04c87f1575b446847ec641b
-[oxscada] Tick 63: role=follower, r=0.677, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx f2e768390448f26b67021c65a3f258b9c08b9a6d1a395a663233e86cd64e085f
-[oxscada] Tick 64: role=follower, r=0.728, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 119e9f68bae87c51bce9f1a802e2532cc5c02cdc104cde2473f0976a9ad3a530
-[oxscada] Tick 65: role=follower, r=0.767, peers=1
-[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 6b60cb5e1bb04c1488a26f8ce1ee361572cf628e747b02a8926f8a2101d4ca49
-[oxscada] Tick 66: role=follower, r=0.792, peers=1
-[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 1d84e0fae6b05aaf18e6439baf0fec2f53a777427d3a092a654ac1ba2351706c
-[oxscada] Tick 67: role=follower, r=0.806, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx effc79b1f500e71f73d700572878372601dc7889e54ca672e80bb1f613ceeeb0
-[oxscada] Tick 68: role=follower, r=0.818, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx c10d8c73591d6d8f1fb36d98d416b21757fd5d93cfa3e28619025dde7777ed0c
-[oxscada] Tick 69: role=follower, r=0.836, peers=1
-[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 984afea6dd129463cf60f9e0b15840296a484c90028b0e3100890aa23858a24f
-[oxscada] Tick 70: role=follower, r=0.859, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 7e0038361e75e4aa91cd1ee10ffb25516ca3359685f24fe2d3692644e92fafa0
-[oxscada] Tick 71: role=follower, r=0.863, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 1a7ff77006b9697f63c5c7e2cdf12504dd92ff13f69f61ddf3cbd52b66adf7e6
-[oxscada] Tick 72: role=follower, r=0.833, peers=1
-[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 7411ae69802cec55316768518dce21500a45b13a4a9f2d9c7bafe93bf3216091
-[oxscada] Tick 73: role=follower, r=0.793, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx bc09b16c5bac2aa7fc9af821af86d6c4f6913502ca97e8b5f4bd8a4f7c26f48a
-[oxscada] Tick 74: role=follower, r=0.760, peers=1
-[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 3d08bbca7feb932d6ac2f4dae8b55df705b7362ab95ce218c0c8b65642bb15eb
-[oxscada] Tick 75: role=follower, r=0.731, peers=1
-[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 0af0d61f0dcff58aaaa78c0e6480347925bae7956a6793890befd3b25aed7a35
-[oxscada] Tick 76: role=follower, r=0.700, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx f4238b83d97803c8a70f9578f04ccf92640c5f5a3dc6524301a0ef51b18a2499
-[oxscada] Tick 77: role=follower, r=0.667, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 5d302a970cd67b4db7e3b39efb081b93f0c732f1f3a2c8fd35ec4c2f6721fd66
-[oxscada] Tick 78: role=follower, r=0.639, peers=1
-[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 6de76760b039c16b8772302092d376d23aaf88f73797df5bf7e15c36cee41b8e
-[oxscada] Tick 79: role=follower, r=0.613, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 5cc0f88e5405e2b8bfefec7daae372bbf23c07798b6361a5fce89fb68b53996e
-[oxscada] Tick 80: role=follower, r=0.577, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx ff92878601cb283520fd06243e704aa7507b5aa47e0ee88e04153b243f1b960a
-[oxscada] Tick 81: role=follower, r=0.530, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx 550c2a173df9dffb4c9e11c6097269140c821faebf07204d3ff54d1e36a94771
-[oxscada] Tick 82: role=follower, r=0.480, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx 06057b9e767606e92db1e39faa2981cced02a049030400afa21aba269b646e2c
-[oxscada] Tick 83: role=leader, r=0.430, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 1c7d24a0da70f8099162ae033f97adb431436790ae38d2b9c65be132c2665be3
-[oxscada] Tick 84: role=leader, r=0.396, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx 43ee622953582dde07f8467cbadb488c13f227b212541b5222ada180834c8399
-[oxscada] Tick 85: role=leader, r=0.378, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 56c047d1942c19c7e6cb2fccb4752074931041ca1333ba5d1a878d41cf8996a5
-[oxscada] Tick 86: role=leader, r=0.375, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx a5d575de0b0385a4be8206e581e349337c083d036231e5ebf9a309bb44c8fa3a
-[oxscada] Tick 87: role=leader, r=0.378, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 7cfbea582b279a089303481f0eed67b965d2b86fbf061f1df0eea1adf4487bb9
-[oxscada] Tick 88: role=leader, r=0.380, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 67ca4ea0c1c9936516616cd1ab296882b0d9c1bcefb5f06704722361383408d6
-[oxscada] Tick 89: role=leader, r=0.386, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx b771ff49aab6d43338456fbf4d425f1c3650aef1aeccad6693af09f6a8194fcd
-[oxscada] Tick 90: role=leader, r=0.396, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx a5ab03a427005e85d11deba9d4e8d3c6d9a2542925c2f5c58a7a6fca74d8d1f3
-[oxscada] Tick 91: role=leader, r=0.413, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx 1c156b315b978e38122cb1aaecffb315988b8c5fab7c638fffbe40224209e9e8
-[oxscada] Tick 92: role=leader, r=0.446, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx a336462613403d2945074adb9ec1aa4294d26091833b9a63c93c50eefbfde3c7
-[oxscada] Tick 93: role=leader, r=0.490, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx a5efd233f15f555f8856a60bd15de005ef2dee0bc45f82e32e23cdddedbd9561
-[oxscada] Tick 94: role=follower, r=0.548, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx b3a0ce21c84ffe3a3692a73f52a34c9b5be2349e1b9eb8b1f4eab48bb32f0183
-[oxscada] Tick 95: role=follower, r=0.611, peers=1
-[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx ee2ea69c236de35132fcb8a06b15f87f448b2e28094e510601fffa02c3df968e
-[oxscada] Tick 96: role=follower, r=0.667, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx d9f93acffcec5eda8b97f560b9b248cad15dd2c942c76b3103ce42b671d4a0e5
-[oxscada] Tick 97: role=follower, r=0.717, peers=1
-[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 931cce9ae5552429bfa475d7d45587d1d992def6541a6c70f1b1dc41292c534b
-[oxscada] Tick 98: role=follower, r=0.757, peers=1
-[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 021d85ec43c355800e51151a7c8bfd3d668e3b4cf91b5a97bd1114aa1647402e
-[oxscada] Tick 99: role=follower, r=0.787, peers=1
-[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx b69da43c87604ded670e70b2f3ba1f41c0a725de69d22247faa0c9ecc0c43eaf
-[oxscada] Tick 100: role=follower, r=0.806, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx d7104098c929e2434209572fb4024aa401f71689a1156117d1cf54f4f5b950d4
-[oxscada] Tick 101: role=follower, r=0.817, peers=1
-[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx 85d0ada441372916c9163939ff17ed5244188faef35979b0267b0b81c4588e7d
-[oxscada] Tick 102: role=follower, r=0.831, peers=1
-[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 8a5859e96a274123da14d6617ee975024b1a334e723a2594ecb63b46b31d9fc3
-[oxscada] Tick 103: role=follower, r=0.850, peers=1
-[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx d87d79f10e63130e9b666e9fa60c741bde8791ff05d96123ad186cd045ecb425
-[oxscada] Tick 104: role=follower, r=0.865, peers=1
-[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx bc1c036d64a28719f30ec75b1a4e9483684232d87e1d841bae203a1168966962
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 3cbdab557b52b72bde80c28ee2e6e9bd8105b3c2e7b8ff8f74cfa0db1ba0ba2a
+[oxscada] Tick 3: role=follower, r=0.553, peers=1
+[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 3d5c3283e071b1f110ffa6c03472ccc2973bb5461531843b41064f77b5af7e9c
+[oxscada] Tick 4: role=follower, r=0.545, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx b30ba2477bcc7cec0e4622d729d58a89a2cf794d46ee9830b563e5bc47264001
+[oxscada] Tick 5: role=follower, r=0.520, peers=1
+[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 4db80bd697eb8661193fff5590536f9583224a359a5b3500253475ab0e3c9f10
+[oxscada] Tick 6: role=follower, r=0.379, peers=1
+[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx aeaa1d36899404119016f41b433b3bfcd2c60f82a0bdac948ea9145e03740b9b
+[oxscada] Tick 7: role=follower, r=0.514, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 5c5d1657d40949882d9768810dab38e59373f682c8c3f9efcc2d38a331595ca5
+[oxscada] Tick 8: role=follower, r=0.523, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 95374a65ad3dec51ba2c5cf4521cce8f969094d879279377ab280b99f463637e
+[oxscada] Tick 9: role=follower, r=0.393, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 52b6562421bf77b0814ed06b6d28863343db0201460ef018a90ec27d768868a4
+[oxscada] Tick 10: role=follower, r=0.550, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 1f3914da35bc21270ae6a3b6fb7ff4e59bb0aebc3d81f4e44dcd23d5b025615c
+[oxscada] Tick 11: role=follower, r=0.550, peers=1
+[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx 17dc7d11f992017feccba4425590026cfa3823e803eb7fca72ca16a3cd243ab9
+[oxscada] Tick 12: role=follower, r=0.394, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 30a2566ad81cb2b76b1dbc80c2ee5e765c379f79d15134a6111e449b4153a234
+[oxscada] Tick 13: role=follower, r=0.552, peers=1
+[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 67dbc3042842455c632cee2186f39a5774733e764382c68ac9a1a5d63db0faf4
+[oxscada] Tick 14: role=follower, r=0.605, peers=1
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 348ab770df5a04f6524de871fc3bcf7476ba5d739af97bdd0c1ade3676edfbb1
+[oxscada] Tick 15: role=follower, r=0.478, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx 0b7948bea00d2dc1d9cf0bd243b910d25558bf218ed3d0c15ef0ab93d145bb2f
+[oxscada] Tick 16: role=leader, r=0.483, peers=1
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 4015a9957372ca932fc5e4070f0715a14e4d3e1f736651cdc4da38d16385aeef
+[oxscada] Tick 17: role=leader, r=0.488, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 3e2ebf8bde85535f06e6de1057c967d76d1f517b2db3177811a08a92d7275949
+[oxscada] Tick 18: role=leader, r=0.423, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 9a5f8e615876592b60091ccd60d482ca907b9ef6ca72840cc81591b2fbe075ad
+[oxscada] Tick 19: role=leader, r=0.381, peers=1
+[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx a239e516ea15ffb1e8a88fbfaf268a0bf7cece05b284ab40c407ae884f819c8a
+[oxscada] Tick 20: role=leader, r=0.392, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 5e2cc4b0bdfb3c3afa9d0dc8cda1914b91a3e1e62d8a4b51d570880c9610c0e3
+[oxscada] Tick 21: role=leader, r=0.364, peers=1
+[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx 051761bcfabfe05bf2d4bca2100478d2390df49ef4a0bd41a1f56d92c9c5d56a
+[oxscada] Tick 22: role=leader, r=0.367, peers=1
+[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx 080fedf30d4e2fecba145cdc2f2229d4866f065207cf703be8f6579bd24f4573
+[oxscada] Tick 23: role=leader, r=0.369, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx ea5a8b1461366497cbf064ac1725fc4a0e16d54f014f99ac688e9e468775b77b
+[oxscada] Tick 24: role=leader, r=0.378, peers=1
+[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx cb45ab808df678a625bfe5680e398ee1d674b87c269fb6d6236c6de1d9426846
+[oxscada] Tick 25: role=leader, r=0.391, peers=1
+[oxscada] SCADA event: TR-MAIN-01 MAINTENANCE_PERFORMED → tx 8bd60356a3abc980e8060c0b73839ad5b28ca374f830383c10a3d5d149702675
+[oxscada] Tick 26: role=leader, r=0.405, peers=1
+[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 43cdaa302a9fbb3c93fa912cabdd07f03a5a1ecf55923aa8ea07553417033134
+[oxscada] Tick 27: role=leader, r=0.422, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx fe71e0176be9afc8d4bbda86faff1629b9250c9ada1f4be5f396df9e81275e03
+[oxscada] Tick 28: role=leader, r=0.448, peers=1
+[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 15618f723de0a0fcc85334b01084cce28e3e719260f7cc66644f4db23093b399
+[oxscada] Tick 29: role=leader, r=0.492, peers=1
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 434cc663e5278c7c688b05e7abbdc070bd86b88b2cf5b8e277915e0aa17f8729
+[oxscada] Tick 30: role=follower, r=0.550, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 55cdd5987fe2ff7ec4abdc9389fff9d6c7aa7fefe2eed1ed843a8628716ba1dc
+[oxscada] Tick 31: role=follower, r=0.623, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx 7fbb241fc9dfc47b52ad0e5f305fd9ab9458d6b084083e33f00ac7ca654996a5
+[oxscada] Tick 32: role=follower, r=0.689, peers=1
+[oxscada] SCADA event: INV-01 MAINTENANCE_PERFORMED → tx 63c3d9d20c6d3af8f50872a71c060defaf95090ea92690d084b5e72d67ccab74
+[oxscada] Tick 33: role=follower, r=0.731, peers=1
+[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx f86b2128027a664b43f324c81166463830cf7d070b2af908737ac5d25b011027
+[oxscada] Tick 34: role=follower, r=0.760, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_CLOSE → tx 57bea87e4c02760213be1befb1ad89227af0dcca634e38842b5912dbd04514ea
+[oxscada] Tick 35: role=follower, r=0.787, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx d87f1b9eece924519757c0040c0b4f2e8f6d7a474edb2915c2089f77db21501d
+[oxscada] Tick 36: role=follower, r=0.809, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_TRIP → tx ffd5ab34728684a0cd5636aa7e2967534e91ea18cb503df7d4ddb6c7b686c152
+[oxscada] Tick 37: role=follower, r=0.828, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx aaca9e0e1bb03439798ed5206c1ee8a1783d73243e4dba2f8c82dc61d397797c
+[oxscada] Tick 38: role=follower, r=0.842, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx c081d993ee0ef8d4230b9d333a0278c45f4831e711844eb5f8397f512c96bd21
+[oxscada] Tick 39: role=follower, r=0.853, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx 0232f54e0cdd0e921b794a0954310861174f441046df2a2dfe5e59ce64c309e6
+[oxscada] Tick 40: role=follower, r=0.856, peers=1
+[oxscada] SCADA event: INV-02 MAINTENANCE_PERFORMED → tx 69bcc9db24a96c3081e517b5edff42553ab375b6f96dc8d7247980a9ee778a14
+[oxscada] Tick 41: role=follower, r=0.839, peers=1
+[oxscada] SCADA event: INV-02 SETPOINT_CHANGE → tx dea7fb396f2abf519f8d24387d8d4e7e46ecd11f668bcc018661214aa35e7a24
+[oxscada] Tick 42: role=follower, r=0.799, peers=1
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 69ae9bf75663b8c08e501f6ad30cfb8c6984304fdc10df1cee731990a67080e8
+[oxscada] Tick 43: role=follower, r=0.752, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 577295270baa3c81c2193e319b9a44b1ae35dbb7f8d197b3ec081b7a4fd8c7de
+[oxscada] Tick 44: role=follower, r=0.717, peers=1
+[oxscada] SCADA event: BK-FEEDER-01 BREAKER_CLOSE → tx dcdbf3b625e41411b7fd3f9ab5b9c5bb1d11042bf9131ec87fa17da6d0a4ebed
+[oxscada] Tick 45: role=follower, r=0.689, peers=1
+[oxscada] SCADA event: TR-MAIN-01 SETPOINT_CHANGE → tx 6b7c98e5bd2de65be6ebc0dce0d89348633581e6bf4cbb87ad4beec826965404
+[oxscada] Tick 46: role=follower, r=0.665, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 1ffffdd51334fbe335a7737735804c53cb5feb34b689367c0301ce5deedf2c11
+[oxscada] Tick 47: role=follower, r=0.639, peers=1
+[oxscada] SCADA event: BK-FEEDER-02 BREAKER_TRIP → tx 3dc519b060764a66c934e2936c5e8554f1ec0d0f256485eb1e28491326aeb260
+[oxscada] Tick 48: role=follower, r=0.608, peers=1
+[oxscada] SCADA event: INV-01 SETPOINT_CHANGE → tx 45478e1ff17deca5a82da017c340a9d10aa08f25e40855843156607b760033db
+[oxscada] Tick 49: role=follower, r=0.566, peers=1
+[oxscada] SCADA event: MCC-PUMP-01 SETPOINT_CHANGE → tx 051d40d6ec581a203e2c76228867d27b711ee042218431a2b8dc8e4e4f7d3ae7

@@ -138,6 +138,12 @@ impl Node {
                     Ok(block) => {
                         let proposer = block.header.proposer;
                         if let Some(attestation) = self.consensus.receive_proposal(&block) {
+                            // ** FIX: Update follower chain state after creating attestation **
+                            self.latest_height = block.header.height;
+                            self.latest_hash = block.hash();
+                            // Also update consensus engine's chain state
+                            self.consensus.set_chain_state(block.header.height, block.hash());
+                            
                             let block_hash = block.hash();
                             vec![NodeAction::SendTo {
                                 node_id: proposer,
@@ -457,5 +463,143 @@ mod tests {
 
         node.handle_event(NodeEvent::PeerDisconnected { node_id: peer });
         assert_eq!(node.connected_peers.len(), 0);
+    }
+
+    #[test]
+    fn test_follower_chain_state_advances() {
+        let leader_kp = NodeKeypair::generate();
+        let follower_kp = NodeKeypair::generate();
+        let leader_id = leader_kp.public_key().0;
+        let follower_id = follower_kp.public_key().0;
+        
+        // Create follower with leader in validator set
+        let mut follower = Node::new(
+            NodeConfig::default(),
+            follower_kp,
+            vec![leader_id, follower_id],
+        );
+        
+        // Initial chain state should be at height 0
+        assert_eq!(follower.latest_height, 0);
+        assert_eq!(follower.latest_hash, [0u8; 32]);
+        
+        // Create a proposal from the leader
+        let tx = make_tx(&leader_kp);
+        let header = BlockHeader {
+            version: 1,
+            height: 1,
+            timestamp: 1000,
+            prev_hash: [0u8; 32],
+            tx_root: {
+                let combined: Vec<u8> = [tx.hash].iter().flat_map(|h| h.iter().copied()).collect();
+                crate::crypto::hash(&combined)
+            },
+            state_root: [0u8; 32],
+            proposer: leader_id,
+        };
+        let sig = leader_kp.sign(&header.serialize());
+        let block = Block {
+            header,
+            header_signature: sig.into(),
+            transactions: vec![tx],
+            attestations: vec![],
+        };
+        
+        let block_hash = block.hash();
+        let block_data = block.serialize();
+        
+        // Follower receives the proposal
+        let actions = follower.handle_event(NodeEvent::ConsensusMsg(
+            ConsensusMessage::BlockProposal { block_data },
+        ));
+        
+        // ** FIX VERIFICATION: Follower chain state should advance **
+        assert_eq!(follower.latest_height, 1, "Follower height should advance to 1");
+        assert_eq!(follower.latest_hash, block_hash, "Follower hash should match block hash");
+        
+        // Should also send attestation
+        let has_attestation = actions.iter().any(|a| matches!(a, NodeAction::SendTo { .. }));
+        assert!(has_attestation, "Follower should send attestation to leader");
+    }
+
+    #[test]
+    fn test_two_node_consensus_scenario() {
+        // This test verifies the full consensus flow between a leader and follower:
+        // 1. Leader proposes block
+        // 2. Follower attests
+        // 3. Leader finalizes
+        // 4. Both nodes have consistent state
+        
+        let leader_kp = NodeKeypair::generate();
+        let follower_kp = NodeKeypair::generate();
+        let leader_id = leader_kp.public_key().0;
+        let follower_id = follower_kp.public_key().0;
+        
+        // Create leader with both validators so it expects attestations
+        let mut leader = Node::new(
+            NodeConfig::default(),
+            leader_kp,
+            vec![leader_id, follower_id], // Include both to test attestation flow
+        );
+        
+        // Create follower with both validators
+        let mut follower = Node::new(
+            NodeConfig::default(),
+            follower_kp,
+            vec![leader_id, follower_id],
+        );
+        
+        // Leader first tick to initialize consensus engine timing
+        leader.handle_event(NodeEvent::Tick(0));
+        
+        // Add transaction and tick to create a block proposal
+        let tx_kp = NodeKeypair::generate();
+        let tx = make_tx(&tx_kp);
+        leader.handle_event(NodeEvent::NewTransaction(tx));
+        
+        // Second tick after block_time_ms to trigger proposal
+        let leader_actions = leader.handle_event(NodeEvent::Tick(2000));
+        
+        // Verify leader proposed a block
+        let proposal_data = leader_actions.iter().find_map(|a| match a {
+            NodeAction::Broadcast(ConsensusMessage::BlockProposal { block_data }) => Some(block_data.clone()),
+            _ => None,
+        }).expect("Leader should propose a block");
+        
+        // Follower receives the proposal
+        let follower_actions = follower.handle_event(NodeEvent::ConsensusMsg(
+            ConsensusMessage::BlockProposal { block_data: proposal_data },
+        ));
+        
+        // Extract the attestation that follower wants to send to leader
+        let attestation_msg = follower_actions.iter().find_map(|a| match a {
+            NodeAction::SendTo { node_id, msg } if *node_id == leader_id => match msg {
+                ConsensusMessage::BlockAttestation { block_hash, validator, signature } => 
+                    Some((*block_hash, *validator, *signature)),
+                _ => None,
+            },
+            _ => None,
+        }).expect("Follower should send attestation to leader");
+        
+        // Check that follower's chain state advanced (Bug 3 fix verification)
+        assert_eq!(follower.latest_height, 1, "Follower chain state should advance");
+        
+        // Now simulate leader receiving the attestation from follower
+        let leader_finalize_actions = leader.handle_event(NodeEvent::ConsensusMsg(
+            ConsensusMessage::BlockAttestation {
+                block_hash: attestation_msg.0,
+                validator: attestation_msg.1,
+                signature: attestation_msg.2,
+            }
+        ));
+        
+        // Leader should commit the block after receiving attestation
+        let has_commit = leader_finalize_actions.iter().any(|a| matches!(a, NodeAction::BlockCommitted { .. }));
+        assert!(has_commit, "Leader should commit finalized block");
+        
+        // Now both nodes should have advanced chain state
+        assert_eq!(leader.latest_height, 1, "Leader should advance to height 1");
+        assert_eq!(follower.latest_height, 1, "Follower should advance to height 1");
+        assert_eq!(leader.latest_hash, follower.latest_hash, "Both nodes should have same latest hash");
     }
 }

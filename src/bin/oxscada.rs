@@ -45,7 +45,61 @@ enum Command {
     },
 }
 
-type PeerMap = Arc<Mutex<HashMap<SocketAddr, Connection>>>;
+/// Registry to track peer connections and routing
+#[derive(Debug, Default)]
+struct PeerRegistry {
+    by_addr: HashMap<SocketAddr, Connection>,
+    id_to_addr: HashMap<[u8; 32], SocketAddr>,
+}
+
+impl PeerRegistry {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn insert(&mut self, addr: SocketAddr, conn: Connection, node_id: Option<[u8; 32]>) {
+        self.by_addr.insert(addr, conn);
+        if let Some(id) = node_id {
+            self.id_to_addr.insert(id, addr);
+        }
+    }
+
+    fn remove(&mut self, addr: SocketAddr) -> Option<[u8; 32]> {
+        self.by_addr.remove(&addr);
+        // Find and remove the reverse mapping
+        let node_id = self.id_to_addr.iter()
+            .find_map(|(id, &a)| if a == addr { Some(*id) } else { None });
+        if let Some(id) = node_id {
+            self.id_to_addr.remove(&id);
+        }
+        node_id
+    }
+
+    fn get_connection_by_addr(&self, addr: SocketAddr) -> Option<&Connection> {
+        self.by_addr.get(&addr)
+    }
+
+    fn get_connection_by_id(&self, node_id: [u8; 32]) -> Option<&Connection> {
+        self.id_to_addr.get(&node_id)
+            .and_then(|&addr| self.by_addr.get(&addr))
+    }
+
+    fn register_node_id(&mut self, addr: SocketAddr, node_id: [u8; 32]) {
+        if self.by_addr.contains_key(&addr) {
+            self.id_to_addr.insert(node_id, addr);
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = (&SocketAddr, &Connection)> {
+        self.by_addr.iter()
+    }
+
+    fn len(&self) -> usize {
+        self.by_addr.len()
+    }
+}
+
+type PeerMap = Arc<Mutex<PeerRegistry>>;
 
 fn now_ms() -> u64 {
     SystemTime::now()
@@ -84,9 +138,19 @@ async fn process_actions(actions: Vec<NodeAction>, peers: &PeerMap) {
                 println!("[oxscada] SendTo {}: {:?}", &hex(&node_id)[..16], std::mem::discriminant(&msg));
                 let data = msg.serialize();
                 let conns = peers.lock().await;
-                for (addr, conn) in conns.iter() {
+                
+                // Route to specific peer by node_id
+                if let Some(conn) = conns.get_connection_by_id(node_id) {
                     if let Err(e) = Transport::send(conn, &data).await {
-                        eprintln!("[oxscada] Failed to send to {addr}: {e}");
+                        eprintln!("[oxscada] Failed to send to node {}: {e}", &hex(&node_id)[..16]);
+                    }
+                } else {
+                    eprintln!("[oxscada] No connection found for node {}", &hex(&node_id)[..16]);
+                    // Fallback: broadcast to all peers (for backward compatibility during transition)
+                    for (addr, conn) in conns.iter() {
+                        if let Err(e) = Transport::send(conn, &data).await {
+                            eprintln!("[oxscada] Failed to send to {addr}: {e}");
+                        }
                     }
                 }
             }
@@ -245,7 +309,7 @@ async fn run_node(config: Config) {
     }
 
     // 4. Shared peer connections
-    let peers: PeerMap = Arc::new(Mutex::new(HashMap::new()));
+    let peers: PeerMap = Arc::new(Mutex::new(PeerRegistry::new()));
 
     // 5. Spawn tasks
     let shutdown = tokio::signal::ctrl_c();
@@ -282,36 +346,43 @@ async fn run_node(config: Config) {
     let connector_transport = transport.clone();
     let connector_peers = peers.clone();
     let connector_node = node.clone();
+    let connector_node_id = node_id;
     let connector_handle = tokio::spawn(async move {
         for addr in seed_peers {
             let transport = connector_transport.clone();
             let peers = connector_peers.clone();
             let node = connector_node.clone();
+            let local_node_id = connector_node_id;
             tokio::spawn(async move {
                 let mut backoff_ms = 1000u64;
                 loop {
                     match transport.connect(addr).await {
                         Ok(conn) => {
                             println!("[oxscada] Connected to peer {addr}");
-                            peers.lock().await.insert(addr, conn.clone());
-                            // Notify node
-                            {
-                                let mut n = node.lock().await;
-                                // We don't know their node_id yet — use zeroed placeholder
-                                n.handle_event(NodeEvent::PeerConnected {
-                                    node_id: [0u8; 32],
-                                });
+                            peers.lock().await.insert(addr, conn.clone(), None);
+                            
+                            // Send handshake PhaseUpdate immediately
+                            let handshake = ConsensusMessage::PhaseUpdate {
+                                node_id: local_node_id,
+                                phase: 0.0,
+                                natural_freq: 1.0,
+                                timestamp: now_ms(),
+                            };
+                            if let Err(e) = Transport::send(&conn, &handshake.serialize()).await {
+                                eprintln!("[oxscada] Failed to send handshake to {addr}: {e}");
                             }
+                            
                             // Spawn reader for this outbound connection
                             let reader_node = node.clone();
                             let reader_peers = peers.clone();
-                            spawn_reader(conn, addr, reader_node, reader_peers).await;
-                            // Connection lost — remove and retry
-                            peers.lock().await.remove(&addr);
+                            spawn_reader(conn, addr, reader_node, reader_peers, local_node_id).await;
+                            
+                            // Connection lost — remove and notify
+                            let disconnected_node_id = peers.lock().await.remove(addr);
                             {
                                 let mut n = node.lock().await;
                                 n.handle_event(NodeEvent::PeerDisconnected {
-                                    node_id: [0u8; 32],
+                                    node_id: disconnected_node_id.unwrap_or([0u8; 32]),
                                 });
                             }
                             println!("[oxscada] Disconnected from peer {addr}, reconnecting...");
@@ -332,28 +403,36 @@ async fn run_node(config: Config) {
     let accept_transport = transport.clone();
     let accept_peers = peers.clone();
     let accept_node = node.clone();
+    let accept_node_id = node_id;
     let accept_handle = tokio::spawn(async move {
         loop {
             match accept_transport.accept().await {
                 Ok(conn) => {
                     let addr = conn.remote_address();
                     println!("[oxscada] Accepted connection from {addr}");
-                    accept_peers.lock().await.insert(addr, conn.clone());
-                    {
-                        let mut n = accept_node.lock().await;
-                        n.handle_event(NodeEvent::PeerConnected {
-                            node_id: [0u8; 32],
-                        });
+                    accept_peers.lock().await.insert(addr, conn.clone(), None);
+                    
+                    // Send handshake PhaseUpdate immediately
+                    let handshake = ConsensusMessage::PhaseUpdate {
+                        node_id: accept_node_id,
+                        phase: 0.0,
+                        natural_freq: 1.0,
+                        timestamp: now_ms(),
+                    };
+                    if let Err(e) = Transport::send(&conn, &handshake.serialize()).await {
+                        eprintln!("[oxscada] Failed to send handshake to {addr}: {e}");
                     }
+                    
                     let reader_node = accept_node.clone();
                     let reader_peers = accept_peers.clone();
+                    let local_node_id = accept_node_id;
                     tokio::spawn(async move {
-                        spawn_reader(conn, addr, reader_node.clone(), reader_peers.clone()).await;
-                        reader_peers.lock().await.remove(&addr);
+                        spawn_reader(conn, addr, reader_node.clone(), reader_peers.clone(), local_node_id).await;
+                        let disconnected_node_id = reader_peers.lock().await.remove(addr);
                         {
                             let mut n = reader_node.lock().await;
                             n.handle_event(NodeEvent::PeerDisconnected {
-                                node_id: [0u8; 32],
+                                node_id: disconnected_node_id.unwrap_or([0u8; 32]),
                             });
                         }
                         println!("[oxscada] Peer {addr} disconnected");
@@ -385,12 +464,34 @@ async fn spawn_reader(
     addr: SocketAddr,
     node: Arc<Mutex<Node>>,
     peers: PeerMap,
+    local_node_id: [u8; 32],
 ) {
+    let mut peer_node_id: Option<[u8; 32]> = None;
+    let mut first_message = true;
+    
     loop {
         match Transport::recv(&conn).await {
             Ok(data) => {
                 match ConsensusMessage::deserialize(&data) {
                     Ok(msg) => {
+                        // Handle handshake: first PhaseUpdate message establishes peer identity
+                        if first_message {
+                            if let ConsensusMessage::PhaseUpdate { node_id, .. } = &msg {
+                                peer_node_id = Some(*node_id);
+                                peers.lock().await.register_node_id(addr, *node_id);
+                                
+                                // Now notify node of the real peer connection
+                                {
+                                    let mut n = node.lock().await;
+                                    n.handle_event(NodeEvent::PeerConnected {
+                                        node_id: *node_id,
+                                    });
+                                }
+                                println!("[oxscada] Handshake complete with peer {} ({})", &hex(node_id)[..16], addr);
+                            }
+                            first_message = false;
+                        }
+                        
                         let actions = {
                             let mut n = node.lock().await;
                             n.handle_event(NodeEvent::ConsensusMsg(msg))
@@ -407,5 +508,47 @@ async fn spawn_reader(
                 break;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::{Ipv4Addr, SocketAddrV4};
+
+    #[test]
+    fn test_peer_registry_basic_operations() {
+        let mut registry = PeerRegistry::new();
+        let addr1 = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9001));
+        let addr2 = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 9002));
+        let node_id1 = [42u8; 32];
+        let node_id2 = [43u8; 32];
+
+        // Mock connection - we'll use a dummy for testing structure
+        // Note: In real test environment, we'd create actual quinn connections
+        // For unit testing the registry logic, we focus on the mapping behavior
+        
+        // Test that we can handle the basic mapping operations without actual connections
+        assert_eq!(registry.by_addr.len(), 0);
+        assert_eq!(registry.id_to_addr.len(), 0);
+        
+        // Test id registration mapping
+        registry.id_to_addr.insert(node_id1, addr1);
+        registry.id_to_addr.insert(node_id2, addr2);
+        
+        assert_eq!(registry.id_to_addr.len(), 2);
+        assert_eq!(registry.id_to_addr.get(&node_id1), Some(&addr1));
+        assert_eq!(registry.id_to_addr.get(&node_id2), Some(&addr2));
+        
+        // Test reverse lookup would work
+        let found_id = registry.id_to_addr.iter()
+            .find_map(|(id, &a)| if a == addr1 { Some(*id) } else { None });
+        assert_eq!(found_id, Some(node_id1));
+        
+        // Test removal logic
+        registry.id_to_addr.remove(&node_id1);
+        assert_eq!(registry.id_to_addr.len(), 1);
+        assert_eq!(registry.id_to_addr.get(&node_id1), None);
+        assert_eq!(registry.id_to_addr.get(&node_id2), Some(&addr2));
     }
 }

@@ -1,0 +1,8 @@
+listen_addr = "0.0.0.0:9000"
+seed_peers = ["170.9.238.136:9000", "170.9.241.14:9000"]
+keypair_path = "node3-keypair.bin"
+data_dir = "./oxscada-data"
+rpc_port = 9001
+block_time_ms = 5000
+coupling_k = 0.5
+chiral_eta = 0.1

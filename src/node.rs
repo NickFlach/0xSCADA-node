@@ -210,12 +210,27 @@ impl Node {
             NodeRole::Leader => "leader".to_string(),
             NodeRole::Follower => "follower".to_string(),
         };
+        let op = self.consensus.order_parameter();
+        let local_phase = self.consensus.local_phase();
+        let peer_phases: Vec<PeerPhaseInfo> = self.consensus.peer_phases()
+            .iter()
+            .filter(|o| o.node_id != self.node_id)
+            .map(|o| PeerPhaseInfo {
+                node_id: o.node_id,
+                phase: o.phase,
+                natural_freq: o.natural_freq,
+                last_updated: o.last_updated,
+            })
+            .collect();
         NodeStatus {
             node_id: self.node_id,
             latest_height: self.latest_height,
             latest_hash: self.latest_hash,
             role,
-            order_parameter: self.consensus.order_parameter().r,
+            order_parameter: op.r,
+            mean_phase: op.psi,
+            local_phase,
+            peer_phases,
             connected_peers: self.connected_peers.len(),
             mempool_size: self.mempool.len(),
         }
@@ -228,12 +243,23 @@ impl Node {
 }
 
 #[derive(Debug, Clone)]
+pub struct PeerPhaseInfo {
+    pub node_id: [u8; 32],
+    pub phase: f64,
+    pub natural_freq: f64,
+    pub last_updated: u64,
+}
+
+#[derive(Debug, Clone)]
 pub struct NodeStatus {
     pub node_id: [u8; 32],
     pub latest_height: u64,
     pub latest_hash: [u8; 32],
     pub role: String,
     pub order_parameter: f64,
+    pub mean_phase: f64,
+    pub local_phase: f64,
+    pub peer_phases: Vec<PeerPhaseInfo>,
     pub connected_peers: usize,
     pub mempool_size: usize,
 }

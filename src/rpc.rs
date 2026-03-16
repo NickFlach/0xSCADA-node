@@ -44,11 +44,22 @@ async fn handle_request(
         "/status" => {
             let status = node.lock().await.status();
             let uptime = ticks.load(Ordering::Relaxed);
+            let peer_phases: Vec<serde_json::Value> = status.peer_phases.iter().map(|p| {
+                serde_json::json!({
+                    "node_id": hex(&p.node_id),
+                    "phase": p.phase,
+                    "natural_freq": p.natural_freq,
+                    "last_updated": p.last_updated,
+                })
+            }).collect();
             let body = serde_json::json!({
                 "node_id": hex(&status.node_id),
                 "height": status.latest_height,
                 "role": status.role,
                 "order_parameter": status.order_parameter,
+                "mean_phase": status.mean_phase,
+                "local_phase": status.local_phase,
+                "peer_phases": peer_phases,
                 "peers": status.connected_peers,
                 "mempool": status.mempool_size,
                 "uptime_ticks": uptime,

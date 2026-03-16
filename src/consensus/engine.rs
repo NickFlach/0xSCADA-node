@@ -246,6 +246,11 @@ impl ConsensusEngine {
             .unwrap_or(0.0)
     }
 
+    /// Get all peer oscillator states (for diagnostics/experiments)
+    pub fn peer_phases(&self) -> &[OscillatorState] {
+        self.kuramoto.peers()
+    }
+
     /// Set chain state (for testing or initialization)
     pub fn set_chain_state(&mut self, height: u64, hash: [u8; 32]) {
         self.latest_height = height;

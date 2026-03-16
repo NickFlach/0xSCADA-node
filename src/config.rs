@@ -20,6 +20,8 @@ pub struct Config {
     pub coupling_k: f64,
     #[serde(default = "default_chiral_eta")]
     pub chiral_eta: f64,
+    #[serde(default)]
+    pub nats_url: Option<String>,
 }
 
 fn default_listen_addr() -> SocketAddr {
@@ -57,6 +59,7 @@ impl Default for Config {
             block_time_ms: default_block_time_ms(),
             coupling_k: default_coupling_k(),
             chiral_eta: default_chiral_eta(),
+            nats_url: None,
         }
     }
 }
@@ -138,6 +141,7 @@ mod tests {
             block_time_ms: 3000,
             coupling_k: 1.5,
             chiral_eta: 0.05,
+            nats_url: None,
         };
         let toml_str = cfg.to_toml().unwrap();
         let parsed: Config = toml::from_str(&toml_str).unwrap();

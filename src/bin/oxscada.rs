@@ -13,6 +13,7 @@ use oxscada_node::config::Config;
 use oxscada_node::consensus::messages::ConsensusMessage;
 use oxscada_node::crypto::NodeKeypair;
 use oxscada_node::network::transport::Transport;
+use oxscada_node::bridge::{self, ScadaBridge, MAX_RECENT_EVENTS};
 use oxscada_node::node::{Node, NodeAction, NodeConfig, NodeEvent};
 
 #[derive(Parser)]
@@ -164,16 +165,75 @@ async fn run_node(config: Config) {
     let transport = Arc::new(transport);
     println!("[oxscada] Listening on {}", transport.local_addr());
 
+    // Shared event log
+    let event_log = bridge::new_event_log();
+
     // RPC server
     let tick_counter = Arc::new(AtomicU64::new(0));
     let rpc_ticks = tick_counter.clone();
     let rpc_node = node.clone();
     let rpc_port = config.rpc_port;
+    let rpc_events = event_log.clone();
     tokio::spawn(async move {
-        if let Err(e) = oxscada_node::rpc::run_rpc_server(rpc_port, rpc_node, rpc_ticks).await {
+        if let Err(e) = oxscada_node::rpc::run_rpc_server(rpc_port, rpc_node, rpc_ticks, rpc_events).await {
             eprintln!("[oxscada] RPC server error: {e}");
         }
     });
+
+    // NATS SCADA bridge
+    if let Some(nats_url) = &config.nats_url {
+        let bridge_node = node.clone();
+        let bridge_events = event_log.clone();
+        let nats_url = nats_url.clone();
+        tokio::spawn(async move {
+            println!("[oxscada] Connecting to NATS at {nats_url}...");
+            let bridge = match ScadaBridge::connect(&nats_url).await {
+                Ok(b) => b,
+                Err(e) => {
+                    eprintln!("[oxscada] NATS connection failed: {e}");
+                    return;
+                }
+            };
+            println!("[oxscada] NATS connected, subscribing to scada.events");
+            let mut sub = match bridge.subscribe("scada.events").await {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("[oxscada] NATS subscribe failed: {e}");
+                    return;
+                }
+            };
+            use futures::StreamExt;
+            while let Some(msg) = sub.next().await {
+                match bridge::event_to_transaction(&msg.payload) {
+                    Ok((body, record)) => {
+                        let tx = bridge::unsigned_transaction(body);
+                        let hash_hex = &record.tx_hash;
+                        println!(
+                            "[oxscada] SCADA event: {} {} → tx {}",
+                            record.asset, record.event_type, hash_hex
+                        );
+                        // Store in event log
+                        {
+                            let mut log = bridge_events.lock().await;
+                            if log.len() >= MAX_RECENT_EVENTS {
+                                log.pop_front();
+                            }
+                            log.push_back(record);
+                        }
+                        // Feed to node
+                        {
+                            let mut n = bridge_node.lock().await;
+                            n.handle_event(NodeEvent::NewTransaction(tx));
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("[oxscada] Bad SCADA event: {e}");
+                    }
+                }
+            }
+            println!("[oxscada] NATS subscription ended");
+        });
+    }
 
     // 4. Shared peer connections
     let peers: PeerMap = Arc::new(Mutex::new(HashMap::new()));

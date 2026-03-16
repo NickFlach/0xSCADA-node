@@ -11,6 +11,7 @@ use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
+use crate::bridge::EventLog;
 use crate::node::Node;
 
 fn hex(bytes: &[u8]) -> String {
@@ -32,6 +33,7 @@ async fn handle_request(
     req: Request<hyper::body::Incoming>,
     node: Arc<Mutex<Node>>,
     ticks: Arc<AtomicU64>,
+    events: EventLog,
 ) -> Result<Response<Full<Bytes>>, std::convert::Infallible> {
     // Handle CORS preflight
     if req.method() == hyper::Method::OPTIONS {
@@ -53,6 +55,12 @@ async fn handle_request(
             });
             json_response(StatusCode::OK, body.to_string())
         }
+        "/events" => {
+            let log = events.lock().await;
+            let recent: Vec<_> = log.iter().rev().take(50).cloned().collect();
+            let body = serde_json::to_string(&recent).unwrap();
+            json_response(StatusCode::OK, body)
+        }
         "/health" => {
             json_response(StatusCode::OK, r#"{"ok":true}"#.to_string())
         }
@@ -67,6 +75,7 @@ pub async fn run_rpc_server(
     port: u16,
     node: Arc<Mutex<Node>>,
     ticks: Arc<AtomicU64>,
+    events: EventLog,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let listener = TcpListener::bind(addr).await?;
@@ -76,12 +85,14 @@ pub async fn run_rpc_server(
         let (stream, _) = listener.accept().await?;
         let node = node.clone();
         let ticks = ticks.clone();
+        let events = events.clone();
         tokio::spawn(async move {
             let io = TokioIo::new(stream);
             let svc = service_fn(move |req| {
                 let node = node.clone();
                 let ticks = ticks.clone();
-                async move { handle_request(req, node, ticks).await }
+                let events = events.clone();
+                async move { handle_request(req, node, ticks, events).await }
             });
             if let Err(e) = http1::Builder::new().serve_connection(io, svc).await {
                 eprintln!("[oxscada] RPC connection error: {e}");

@@ -11,3 +11,4 @@ pub mod network;
 pub mod node;
 pub mod validation;
 pub mod rpc;
+pub mod bridge;

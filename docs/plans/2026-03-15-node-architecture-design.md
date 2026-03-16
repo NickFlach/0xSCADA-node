@@ -51,27 +51,91 @@ A purpose-built, lightweight blockchain node for the 0xSCADA industrial control 
 - **Identity:** Each node has an ed25519 keypair. QUIC certificates derived from node identity.
 - **Connections:** Full mesh between all validators. Persistent connections with automatic reconnect.
 
-## Consensus — Raft-BFT Hybrid
+## Consensus — Resonant Consensus (Kuramoto-BFT)
 
-### Why not pure PBFT?
-Classic PBFT requires 3f+1 nodes to tolerate f Byzantine faults. With 3 nodes, f=0 — no fault tolerance. With 4 nodes, f=1, but we don't have 4 validators yet.
+### The Novel Approach
 
-### Why not pure Raft?
-Raft assumes crash faults only (honest nodes). For an audit chain, we want cryptographic attestation — proof that validators actually signed off on blocks, not just replicated a leader's log.
+Inspired by QuantumOS's resonant scheduler and ghostmagicOS's core equation
+`dx/dt = f(x) - Iηx`, this consensus mechanism replaces rigid Raft timers
+with phase-coupled oscillators. Each validator is a Kuramoto oscillator with
+natural frequency ωᵢ and coupling constant K. Validators naturally drift
+toward consensus — the order parameter r becomes a real-time network health
+metric.
 
-### The Hybrid
-- **Leader election:** Raft-style. Heartbeat timeout → candidate → vote → leader. Simple, well-understood, fast.
-- **Block proposal:** Leader collects transactions, builds block, proposes to followers.
-- **Attestation:** Followers validate the block and return ed25519 signatures. Block is final when 2-of-3 (or ⌈n/2⌉+1) attestations collected.
-- **Finality:** Immediate. Once attestation threshold met, block is committed. No forks, no reorgs.
-- **Crypto guarantee:** Every committed block carries validator signatures. Even if you don't trust the leader, you can verify the attestations independently. This is what makes it "BFT-lite" — not full Byzantine tolerance, but cryptographic non-repudiation.
+### Why not pure Raft or PBFT?
+- Pure PBFT requires 3f+1 nodes (3 nodes → f=0, no fault tolerance)
+- Pure Raft assumes honest nodes (crash faults only)
+- Rigid heartbeat timers are brittle — clock drift, network jitter cause unnecessary elections
+
+### The Resonant Model
+
+Each validator maintains a phase θᵢ that evolves according to:
+
+```
+dθᵢ/dt = ωᵢ + (K/N)Σⱼsin(θⱼ - θᵢ) + ηᵢ(t)
+```
+
+- **ωᵢ** — natural frequency (based on node's block production rate)
+- **K** — coupling constant (how strongly nodes sync — tunable)
+- **ηᵢ(t)** — chiral noise term (prevents over-synchronization)
+- **Order parameter** r·e^(iψ) = (1/N)Σⱼe^(iθⱼ) — network coherence
+
+**Leader selection:** The node whose phase is closest to the mean phase (ψ)
+proposes the next block. This rotates naturally as phases evolve — no explicit
+election needed in steady state. Falls back to Raft-style voting if r drops
+below threshold (network instability).
+
+**Block proposal:** Leader collects transactions, builds block, proposes.
+**Attestation:** Followers validate and sign. Block final at ⌈n/2⌉+1 sigs.
+**Finality:** Immediate. No forks, no reorgs.
+
+**Health monitoring via order parameter:**
+- r > 0.9 — healthy consensus, fast finality
+- r ∈ [0.5, 0.9] — degraded, increase coupling K
+- r < 0.5 — critical, fall back to explicit Raft election
+- r → 1.0 sustained — inject chiral perturbation (prevent ossification)
+
+### Chiral Block Validation
+
+The `dx/dt = f(x) - Iηx` principle applied to block validation. Instead of
+pure binary accept/reject, validators compute a stability score:
+
+```
+stability = |η/γ| where η = interference, γ = damping
+```
+
+Classification (from QuantumOS chiral_resources.c):
+- |η/γ| < 0.3 → EXCELLENT — normal SCADA data patterns
+- |η/γ| < 0.6 → GOOD — acceptable variance
+- |η/γ| < 1.0 → MARGINAL — flag for review
+- |η/γ| ≥ 1.0 → UNSTABLE — reject block
+
+A block that's "too perfect" (suspiciously ordered) or "too chaotic" both
+get flagged. Real industrial data lives in the interference zone.
+
+### Berry Phase Audit Trail
+
+Geometric phase tracking from QuantumOS's geometric_control.c applied to
+the audit chain. As SCADA events accumulate, the chain's state traces a path
+through a manifold. The Berry phase is a topological invariant — you can
+prove that a sequence of events is consistent even if individual blocks were
+replayed or reordered.
+
+```
+γ = ∮ A(θ)·dθ  (Berry connection integrated over state cycle)
+```
+
+This provides a novel compliance primitive: cryptographic proof of event
+sequence integrity that survives block reorganization attempts.
 
 ### Parameters
 - **Block time:** 2 seconds (configurable)
-- **Heartbeat interval:** 500ms
-- **Election timeout:** 2-5 seconds (randomized)
+- **Coupling constant K:** 2.0 (initial, auto-tuned based on r)
+- **Natural frequency ω:** 0.5 Hz (matches block time)
+- **Chiral perturbation η:** 0.05 (prevents phase lock)
+- **Raft fallback threshold:** r < 0.5
 - **Max transactions per block:** 1000
-- **Empty blocks:** Skipped (no empty block spam)
+- **Empty blocks:** Skipped
 
 ## Block Structure
 

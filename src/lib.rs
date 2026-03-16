@@ -1,3 +1,4 @@
+pub mod config;
 pub mod crypto;
 pub mod transaction;
 pub mod block;
@@ -9,3 +10,4 @@ pub mod mempool;
 pub mod network;
 pub mod node;
 pub mod validation;
+pub mod rpc;

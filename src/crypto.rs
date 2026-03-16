@@ -49,6 +49,10 @@ impl NodeKeypair {
         Ok(Self { signing_key })
     }
 
+    pub fn to_bytes(&self) -> [u8; 32] {
+        self.signing_key.to_bytes()
+    }
+
     pub fn public_key(&self) -> PublicKey {
         PublicKey(self.signing_key.verifying_key().to_bytes())
     }

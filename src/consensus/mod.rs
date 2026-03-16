@@ -1,3 +1,4 @@
+pub mod chiral;
 pub mod engine;
 pub mod kuramoto;
 pub mod messages;

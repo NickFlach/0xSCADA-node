@@ -1,0 +1,21 @@
+[package]
+name = "oxscada-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+blake3 = "1"
+ciborium = "0.2"
+serde = { version = "1", features = ["derive"] }
+rand = "0.8"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+clap = { version = "4", features = ["derive"] }
+toml = "0.8"
+thiserror = "2"
+serde-big-array = "0.5"
+sled = "0.34"
+
+[dev-dependencies]
+tempfile = "3"

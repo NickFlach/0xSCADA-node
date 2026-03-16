@@ -1,9 +1,17 @@
+// PROTOCOL NOTE: Field ordering is part of the wire format. Do not reorder fields.
+
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 
+use crate::crypto::{self, PublicKey, Signature};
 use crate::transaction::Transaction;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+/// Maximum transactions per block.
+pub const MAX_TRANSACTIONS_PER_BLOCK: usize = 1000;
+/// Maximum attestations per block.
+pub const MAX_ATTESTATIONS: usize = 100;
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BlockHeader {
     pub version: u8,
     pub height: u64,
@@ -14,14 +22,14 @@ pub struct BlockHeader {
     pub proposer: [u8; 32],
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Attestation {
     pub validator: [u8; 32],
     #[serde(with = "BigArray")]
     pub signature: [u8; 64],
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Block {
     pub header: BlockHeader,
     #[serde(with = "BigArray")]
@@ -31,9 +39,10 @@ pub struct Block {
 }
 
 impl BlockHeader {
+    // SAFETY: CBOR serialization of fixed-size primitives cannot fail (no IO).
     pub fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
-        ciborium::into_writer(self, &mut buf).expect("CBOR serialize failed");
+        ciborium::into_writer(self, &mut buf).unwrap();
         buf
     }
 
@@ -42,25 +51,62 @@ impl BlockHeader {
     }
 }
 
+impl Attestation {
+    /// Verify this attestation's signature against the given block hash.
+    pub fn verify(&self, block_hash: &[u8; 32]) -> bool {
+        let pk = PublicKey(self.validator);
+        let sig = Signature(self.signature);
+        crypto::verify(&pk, block_hash, &sig)
+    }
+}
+
 impl Block {
     pub fn hash(&self) -> [u8; 32] {
         self.header.hash()
     }
 
+    // SAFETY: see BlockHeader::serialize()
     pub fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
-        ciborium::into_writer(self, &mut buf).expect("CBOR serialize failed");
+        ciborium::into_writer(self, &mut buf).unwrap();
         buf
     }
 
     pub fn deserialize(data: &[u8]) -> Result<Self, ciborium::de::Error<std::io::Error>> {
         ciborium::from_reader(data)
     }
+
+    /// Verify the proposer's signature over the block header.
+    pub fn verify_proposer_signature(&self) -> bool {
+        let pk = PublicKey(self.header.proposer);
+        let sig = Signature(self.header_signature);
+        crypto::verify(&pk, &self.header.serialize(), &sig)
+    }
+
+    /// Validate that block dimensions are within protocol limits.
+    pub fn validate_size(&self) -> Result<(), String> {
+        if self.transactions.len() > MAX_TRANSACTIONS_PER_BLOCK {
+            return Err(format!(
+                "too many transactions: {} > {}",
+                self.transactions.len(),
+                MAX_TRANSACTIONS_PER_BLOCK
+            ));
+        }
+        if self.attestations.len() > MAX_ATTESTATIONS {
+            return Err(format!(
+                "too many attestations: {} > {}",
+                self.attestations.len(),
+                MAX_ATTESTATIONS
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::crypto::NodeKeypair;
     use crate::transaction::TransactionBody;
 
     fn sample_header(height: u64) -> BlockHeader {
@@ -140,5 +186,58 @@ mod tests {
         assert_eq!(block.attestations.len(), block2.attestations.len());
         assert_eq!(block.attestations[0].validator, block2.attestations[0].validator);
         assert_eq!(block.hash(), block2.hash());
+    }
+
+    #[test]
+    fn test_block_signature_verification() {
+        let kp = NodeKeypair::generate();
+        let header = BlockHeader {
+            version: 1,
+            height: 1,
+            timestamp: 1_700_000_000_000,
+            prev_hash: [0u8; 32],
+            tx_root: [0u8; 32],
+            state_root: [0u8; 32],
+            proposer: kp.public_key().0,
+        };
+        let sig = kp.sign(&header.serialize());
+        let block = Block {
+            header,
+            header_signature: sig.into(),
+            transactions: vec![],
+            attestations: vec![],
+        };
+        assert!(block.verify_proposer_signature());
+
+        // Tamper with signature
+        let mut bad_block = block.clone();
+        bad_block.header_signature = [0xAA; 64];
+        assert!(!bad_block.verify_proposer_signature());
+    }
+
+    #[test]
+    fn test_attestation_verification() {
+        let kp = NodeKeypair::generate();
+        let block_hash = [0x42u8; 32];
+        let sig = kp.sign(&block_hash);
+        let att = Attestation {
+            validator: kp.public_key().0,
+            signature: sig.into(),
+        };
+        assert!(att.verify(&block_hash));
+        assert!(!att.verify(&[0xFF; 32])); // wrong hash
+    }
+
+    #[test]
+    fn test_block_validate_size() {
+        let block = sample_block();
+        assert!(block.validate_size().is_ok());
+
+        // Too many attestations
+        let mut big = block.clone();
+        big.attestations = (0..MAX_ATTESTATIONS + 1)
+            .map(|_| Attestation { validator: [0u8; 32], signature: [0u8; 64] })
+            .collect();
+        assert!(big.validate_size().is_err());
     }
 }

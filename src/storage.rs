@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use crate::block::Block;
+
 /// Minimal block representation for storage.
 /// Will be replaced with or converted from the real Block type in task 0.5.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -24,8 +26,20 @@ pub enum StorageError {
     TransactionNotFound,
 }
 
+impl From<&Block> for StorableBlock {
+    fn from(block: &Block) -> Self {
+        StorableBlock {
+            height: block.header.height,
+            hash: block.header.hash(),
+            prev_hash: block.header.prev_hash,
+            timestamp: block.header.timestamp,
+            tx_hashes: block.transactions.iter().map(|tx| tx.hash).collect(),
+            data: block.serialize(),
+        }
+    }
+}
+
 pub struct Storage {
-    #[allow(dead_code)]
     db: sled::Db,
     blocks: sled::Tree,
     block_hashes: sled::Tree,
@@ -70,6 +84,10 @@ impl Storage {
             tx_val[8..].copy_from_slice(&(i as u32).to_be_bytes());
             self.tx_index.insert(tx_hash, &tx_val)?;
         }
+        // Flush all writes to disk for durability. Note: the individual inserts above are not
+        // wrapped in a single sled transaction, so there is a small crash window where indexes
+        // could be partially written. Flush ensures that if we return Ok, all data is on disk.
+        self.db.flush()?;
         Ok(())
     }
 
@@ -228,6 +246,29 @@ mod tests {
         let s = Storage::open(dir.path()).unwrap();
         let got = s.get_block_by_height(50).unwrap();
         assert_eq!(got.height, 50);
+    }
+
+    #[test]
+    fn test_store_block_all_indexes_consistent() {
+        let dir = tempfile::tempdir().unwrap();
+        let s = Storage::open(dir.path()).unwrap();
+        let block = test_block(25);
+        s.store_block(&block).unwrap();
+
+        // Verify by-height
+        let by_height = s.get_block_by_height(25).unwrap();
+        assert_eq!(by_height.hash, block.hash);
+
+        // Verify by-hash
+        let by_hash = s.get_block_by_hash(&block.hash).unwrap();
+        assert_eq!(by_hash.height, 25);
+
+        // Verify tx indexes
+        for (i, tx_hash) in block.tx_hashes.iter().enumerate() {
+            let (h, idx) = s.get_tx_location(tx_hash).unwrap();
+            assert_eq!(h, 25);
+            assert_eq!(idx, i as u32);
+        }
     }
 
     #[test]

@@ -11,6 +11,30 @@ pub struct PublicKey(pub [u8; 32]);
 #[derive(Debug, Clone)]
 pub struct Signature(pub [u8; 64]);
 
+impl From<PublicKey> for [u8; 32] {
+    fn from(pk: PublicKey) -> [u8; 32] {
+        pk.0
+    }
+}
+
+impl From<[u8; 32]> for PublicKey {
+    fn from(bytes: [u8; 32]) -> PublicKey {
+        PublicKey(bytes)
+    }
+}
+
+impl From<Signature> for [u8; 64] {
+    fn from(sig: Signature) -> [u8; 64] {
+        sig.0
+    }
+}
+
+impl From<[u8; 64]> for Signature {
+    fn from(bytes: [u8; 64]) -> Signature {
+        Signature(bytes)
+    }
+}
+
 impl NodeKeypair {
     pub fn generate() -> Self {
         Self {
@@ -87,5 +111,23 @@ mod tests {
         let msg = b"roundtrip test";
         let sig = kp1.sign(msg);
         assert!(verify(&kp2.public_key(), msg, &sig));
+    }
+
+    #[test]
+    fn test_public_key_from_into() {
+        let pk = PublicKey([42u8; 32]);
+        let bytes: [u8; 32] = pk.clone().into();
+        assert_eq!(bytes, [42u8; 32]);
+        let pk2: PublicKey = bytes.into();
+        assert_eq!(pk, pk2);
+    }
+
+    #[test]
+    fn test_signature_from_into() {
+        let sig = Signature([0xAB; 64]);
+        let bytes: [u8; 64] = sig.into();
+        assert_eq!(bytes, [0xAB; 64]);
+        let sig2: Signature = bytes.into();
+        assert_eq!(sig2.0, [0xAB; 64]);
     }
 }

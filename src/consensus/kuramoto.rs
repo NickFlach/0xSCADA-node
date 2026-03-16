@@ -69,7 +69,8 @@ impl KuramotoEngine {
         }
 
         let chiral = self.chiral_perturbation(idx, phase_i);
-        let dtheta = omega_i + (self.coupling / n) * sum + chiral;
+        // Standard Kuramoto form: divide by (N-1) to exclude self-coupling
+        let dtheta = omega_i + (self.coupling / (n - 1.0).max(1.0)) * sum + chiral;
         let new_phase = normalize_phase(phase_i + dtheta * dt);
         self.oscillators[idx].phase = new_phase;
         new_phase
@@ -113,7 +114,7 @@ impl KuramotoEngine {
     }
 
     fn chiral_perturbation(&self, index: usize, phase: f64) -> f64 {
-        let sign = if index % 2 == 0 { 1.0 } else { -1.0 };
+        let sign = if self.oscillators[index].node_id[0] % 2 == 0 { 1.0 } else { -1.0 };
         self.chiral_eta * (2.0 * phase).sin() * sign
     }
 }

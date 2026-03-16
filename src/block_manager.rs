@@ -261,8 +261,10 @@ impl BlockManager {
         if n == 0 {
             return 1;
         }
-        let t = (n + 1) / 2 + 1; // ceil(n/2) + 1
-        t.min(n) // can't require more attestations than validators
+        if n <= 2 {
+            return n;
+        }
+        (n * 2 + 2) / 3 // ceil(2n/3) — BFT-safe supermajority
     }
 
     pub fn latest_height(&self) -> u64 {

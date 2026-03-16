@@ -1,3 +1,4 @@
+use crate::crypto::{PublicKey, Signature, verify};
 use crate::transaction::*;
 use std::collections::HashMap;
 
@@ -27,6 +28,12 @@ impl Mempool {
             return false;
         }
         if tx.validate_size().is_err() {
+            return false;
+        }
+        // Verify transaction signature
+        let pk = PublicKey(tx.signer);
+        let sig = Signature(tx.signature);
+        if !verify(&pk, &tx.hash, &sig) {
             return false;
         }
         if self.transactions.contains_key(&tx.hash) {
@@ -290,6 +297,21 @@ mod tests {
         assert!(!pool.contains(&hash));
         pool.insert(tx);
         assert!(pool.contains(&hash));
+    }
+
+    #[test]
+    fn test_reject_unsigned_transaction() {
+        let mut pool = Mempool::new();
+        let body = anchor_body(1);
+        // Create a transaction with invalid signature
+        let tx = Transaction {
+            hash: body.hash(),
+            body,
+            signature: [0xAA; 64],
+            signer: [0xBB; 32],
+        };
+        assert!(!pool.insert(tx));
+        assert_eq!(pool.len(), 0);
     }
 
     #[test]

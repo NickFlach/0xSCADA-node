@@ -127,12 +127,6 @@ impl RaftFallback {
         false
     }
 
-    /// Handle leader heartbeat (convenience — delegates to handle_heartbeat_at with timestamp 0)
-    pub fn handle_heartbeat(&mut self, msg: &ConsensusMessage) {
-        // Caller should prefer handle_heartbeat_at with actual timestamp
-        self.handle_heartbeat_at(msg, 0);
-    }
-
     /// Handle leader heartbeat with explicit timestamp
     pub fn handle_heartbeat_at(&mut self, msg: &ConsensusMessage, now_ms: u64) {
         if let ConsensusMessage::RaftHeartbeat { term, leader_id, .. } = msg {

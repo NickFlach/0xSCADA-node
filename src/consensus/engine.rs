@@ -1,5 +1,6 @@
 use crate::block::*;
 use crate::consensus::kuramoto::*;
+use crate::consensus::raft_fallback::RaftFallback;
 use crate::crypto::*;
 use crate::transaction::*;
 
@@ -21,14 +22,27 @@ pub struct ConsensusEngine {
     local_keypair: NodeKeypair,
     local_id: [u8; 32],
     kuramoto: KuramotoEngine,
+    raft: RaftFallback,
     role: NodeRole,
     pending: Option<PendingBlock>,
     attestation_threshold: usize,
+    validator_set: Vec<[u8; 32]>,
     block_time_ms: u64,
     last_block_time: u64,
     last_tick: u64,
     latest_height: u64,
     latest_hash: [u8; 32],
+}
+
+/// Compute BFT-safe attestation threshold: ceil(2n/3), with special case for n <= 2
+pub fn bft_threshold(validator_count: usize) -> usize {
+    if validator_count == 0 {
+        return 1;
+    }
+    if validator_count <= 2 {
+        return validator_count;
+    }
+    (validator_count * 2 + 2) / 3
 }
 
 impl ConsensusEngine {
@@ -48,25 +62,28 @@ impl ConsensusEngine {
             natural_freq: 1.0,
             last_updated: 0,
         });
-        let threshold = if validator_count == 0 {
-            1
-        } else {
-            let t = (validator_count + 1) / 2 + 1;
-            t.min(validator_count)
-        };
+        let threshold = bft_threshold(validator_count);
         ConsensusEngine {
             local_keypair: keypair,
             local_id,
             kuramoto,
+            raft: RaftFallback::new(local_id, validator_count),
             role: NodeRole::Follower,
             pending: None,
             attestation_threshold: threshold,
+            validator_set: Vec::new(),
             block_time_ms,
             last_block_time: 0,
             last_tick: 0,
             latest_height: 0,
             latest_hash: [0u8; 32],
         }
+    }
+
+    /// Set the validator set for attestation validation
+    pub fn set_validator_set(&mut self, validators: Vec<[u8; 32]>) {
+        self.validator_set = validators;
+        self.attestation_threshold = bft_threshold(self.validator_set.len());
     }
 
     /// Update peer's phase from network message
@@ -76,22 +93,51 @@ impl ConsensusEngine {
 
     /// Tick the consensus engine
     pub fn tick(&mut self, now_ms: u64, transactions: Vec<Transaction>) -> Option<Block> {
-        // Advance Kuramoto
+        // Advance Kuramoto with saturating subtraction to guard against timestamp regression
         if self.last_tick > 0 {
-            let dt = (now_ms - self.last_tick) as f64 / 1000.0;
+            let dt_ms = now_ms.saturating_sub(self.last_tick);
+            if dt_ms == 0 {
+                return None;
+            }
+            let dt = dt_ms as f64 / 1000.0;
             self.kuramoto.step(&self.local_id, dt);
         }
         self.last_tick = now_ms;
 
+        // Pending block timeout (10 seconds)
+        if let Some(ref pending) = self.pending {
+            if now_ms.saturating_sub(pending.created_at) > 10_000 {
+                self.pending = None;
+            }
+        }
+
+        // Check order parameter for Raft fallback
+        let r = self.kuramoto.order_parameter().r;
+
+        if r < 0.5 {
+            self.raft.activate(now_ms);
+        } else if self.raft.state() != crate::consensus::raft_fallback::RaftState::Inactive {
+            self.raft.deactivate();
+        }
+
+        // Determine leader from active consensus mechanism
+        let active_leader = if self.raft.state() != crate::consensus::raft_fallback::RaftState::Inactive {
+            // Raft is active — tick it and use its leader
+            let _msgs = self.raft.tick(now_ms);
+            self.raft.current_leader()
+        } else {
+            self.kuramoto.leader()
+        };
+
         // Determine role
-        self.role = match self.kuramoto.leader() {
+        self.role = match active_leader {
             Some(leader_id) if leader_id == self.local_id => NodeRole::Leader,
             _ => NodeRole::Follower,
         };
 
         // If Leader and time to propose and have transactions
         if self.role == NodeRole::Leader
-            && (now_ms - self.last_block_time >= self.block_time_ms)
+            && (now_ms.saturating_sub(self.last_block_time) >= self.block_time_ms)
             && !transactions.is_empty()
         {
             let block = self.build_block(now_ms, transactions);
@@ -109,6 +155,16 @@ impl ConsensusEngine {
     /// Receive an attestation for our pending block
     pub fn receive_attestation(&mut self, attestation: Attestation) -> Option<Block> {
         let pending = self.pending.as_mut()?;
+
+        // Reject attestations from unknown validators (if validator set is configured)
+        if !self.validator_set.is_empty() && !self.validator_set.contains(&attestation.validator) {
+            return None;
+        }
+
+        // Reject duplicate attestations from the same validator
+        if pending.attestations.iter().any(|a| a.validator == attestation.validator) {
+            return None;
+        }
 
         // Verify attestation signature against our pending block hash
         let block_hash = pending.block.hash();
@@ -249,7 +305,7 @@ mod tests {
         // Initially follower (only one node, but it should be leader after tick)
         // Before any tick, role is default Follower
         assert_eq!(engine.role(), NodeRole::Follower);
-        assert_eq!(engine.attestation_threshold, 3); // (3+1)/2+1 = 3, min(3,3) = 3
+        assert_eq!(engine.attestation_threshold, 2); // ceil(2*3/3) = 2 (BFT supermajority)
     }
 
     #[test]
@@ -446,5 +502,133 @@ mod tests {
         assert_eq!(att.validator, follower_id);
         // Verify the attestation is valid
         assert!(att.verify(&block.hash()));
+    }
+
+    #[test]
+    fn test_reject_unknown_validator_attestation() {
+        let kp = NodeKeypair::generate();
+        let kp2 = NodeKeypair::generate();
+        let tx = make_tx(&kp2);
+
+        let local_pub = kp.public_key().0;
+        let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 2);
+        // Set validator set that does NOT include the unknown validator
+        engine.set_validator_set(vec![local_pub]);
+
+        engine.tick(0, vec![]);
+        let block = engine.tick(1000, vec![tx]).unwrap();
+        let block_hash = block.hash();
+
+        // Attestation from unknown validator
+        let unknown_kp = NodeKeypair::generate();
+        let sig = unknown_kp.sign(&block_hash);
+        let att = Attestation {
+            validator: unknown_kp.public_key().0,
+            signature: sig.into(),
+        };
+        assert!(engine.receive_attestation(att).is_none());
+    }
+
+    #[test]
+    fn test_reject_duplicate_attestation() {
+        let kp = NodeKeypair::generate();
+        let kp2 = NodeKeypair::generate();
+        let tx = make_tx(&kp2);
+
+        let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 3);
+
+        engine.tick(0, vec![]);
+        let block = engine.tick(1000, vec![tx]).unwrap();
+        let block_hash = block.hash();
+
+        let att_kp = NodeKeypair::generate();
+        let sig = att_kp.sign(&block_hash);
+        let att1 = Attestation {
+            validator: att_kp.public_key().0,
+            signature: sig.into(),
+        };
+        // First should be accepted (not finalized yet)
+        assert!(engine.receive_attestation(att1).is_none());
+
+        // Duplicate from same validator should be rejected
+        let sig2 = att_kp.sign(&block_hash);
+        let att2 = Attestation {
+            validator: att_kp.public_key().0,
+            signature: sig2.into(),
+        };
+        assert!(engine.receive_attestation(att2).is_none());
+    }
+
+    #[test]
+    fn test_raft_fallback_activates_on_low_r() {
+        let kp = NodeKeypair::generate();
+        let local_id = make_id_from_keypair(&kp);
+        let mut engine = ConsensusEngine::new(kp, 0.0, 0.0, 1000, 1);
+
+        // Add many peers at wildly different phases to get low r
+        for i in 1..10u8 {
+            let mut id = [0u8; 32];
+            id[0] = i;
+            engine.kuramoto.update_peer(OscillatorState {
+                node_id: id,
+                phase: (i as f64) * 0.7,
+                natural_freq: 1.0 + i as f64 * 0.1,
+                last_updated: 0,
+            });
+        }
+
+        // Verify r is low
+        let r = engine.order_parameter().r;
+        assert!(r < 0.5, "r={} should be < 0.5 for Raft activation", r);
+
+        // Tick — should activate Raft
+        engine.tick(1000, vec![]);
+        assert_ne!(
+            engine.raft.state(),
+            crate::consensus::raft_fallback::RaftState::Inactive,
+            "Raft should be active when r < 0.5"
+        );
+    }
+
+    #[test]
+    fn test_pending_block_timeout() {
+        let kp = NodeKeypair::generate();
+        let kp2 = NodeKeypair::generate();
+        let tx = make_tx(&kp2);
+
+        let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 1);
+
+        engine.tick(0, vec![]);
+        let block = engine.tick(1000, vec![tx]).unwrap();
+        assert!(engine.pending.is_some());
+
+        // Tick past 10 second timeout
+        engine.tick(12000, vec![]);
+        assert!(engine.pending.is_none(), "Pending block should be cleared after 10s timeout");
+    }
+
+    #[test]
+    fn test_timestamp_regression_guard() {
+        let kp = NodeKeypair::generate();
+        let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 1);
+
+        // First tick
+        engine.tick(5000, vec![]);
+        // Regressed timestamp — should return None and not panic
+        let result = engine.tick(3000, vec![]);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_bft_threshold_values() {
+        assert_eq!(bft_threshold(0), 1);
+        assert_eq!(bft_threshold(1), 1);
+        assert_eq!(bft_threshold(2), 2);
+        assert_eq!(bft_threshold(3), 2);  // ceil(6/3) = 2
+        assert_eq!(bft_threshold(4), 3);  // ceil(8/3) = 3
+        assert_eq!(bft_threshold(5), 4);  // ceil(10/3) = 4
+        assert_eq!(bft_threshold(6), 4);  // ceil(12/3) = 4
+        assert_eq!(bft_threshold(7), 5);  // ceil(14/3) = 5
+        assert_eq!(bft_threshold(10), 7); // ceil(20/3) = 7
     }
 }

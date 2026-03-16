@@ -22,6 +22,8 @@ pub struct ChiralPerturbation {
 
 impl ChiralPerturbation {
     pub fn new(eta_0: f64, window_size: usize) -> Self {
+        assert!(window_size >= 1, "window_size must be >= 1");
+        let eta_0 = eta_0.abs(); // perturbation strength must be non-negative
         Self {
             eta_0,
             window_size,
@@ -50,7 +52,8 @@ impl ChiralPerturbation {
 
     /// Returns true if the last `window_size` r values are all above the lock threshold.
     pub fn should_perturb(&self) -> bool {
-        self.history.len() >= self.window_size
+        !self.history.is_empty()
+            && self.history.len() >= self.window_size
             && self.history.iter().all(|&r| r > self.lock_threshold)
     }
 
@@ -197,6 +200,12 @@ mod tests {
             cp.record_order_parameter(0.98);
         }
         assert!(cp.perturbation_active());
+    }
+
+    #[test]
+    #[should_panic(expected = "window_size must be >= 1")]
+    fn test_zero_window_size_panics() {
+        ChiralPerturbation::new(0.15, 0);
     }
 
     #[test]

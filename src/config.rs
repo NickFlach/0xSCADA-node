@@ -62,12 +62,27 @@ impl Default for Config {
 }
 
 impl Config {
+    /// Validate configuration values.
+    pub fn validate(&self) -> Result<(), ConfigError> {
+        if self.block_time_ms == 0 {
+            return Err(ConfigError::Validation("block_time_ms must be > 0".into()));
+        }
+        if self.coupling_k < 0.0 || !self.coupling_k.is_finite() {
+            return Err(ConfigError::Validation("coupling_k must be non-negative and finite".into()));
+        }
+        if self.chiral_eta < 0.0 || !self.chiral_eta.is_finite() {
+            return Err(ConfigError::Validation("chiral_eta must be non-negative and finite".into()));
+        }
+        Ok(())
+    }
+
     /// Load config from a TOML file, falling back to defaults for missing fields.
     pub fn load(path: &std::path::Path) -> Result<Self, ConfigError> {
         let contents = std::fs::read_to_string(path)
             .map_err(|e| ConfigError::Io(e))?;
         let config: Config = toml::from_str(&contents)
             .map_err(|e| ConfigError::Parse(e))?;
+        config.validate()?;
         Ok(config)
     }
 
@@ -91,6 +106,8 @@ pub enum ConfigError {
     Io(#[from] std::io::Error),
     #[error("TOML parse error: {0}")]
     Parse(#[from] toml::de::Error),
+    #[error("Validation error: {0}")]
+    Validation(String),
 }
 
 #[cfg(test)]

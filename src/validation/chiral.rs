@@ -156,7 +156,7 @@ impl ChiralValidator {
 
     /// Score a single channel of sensor readings.
     pub fn score(&self, data: &[f64]) -> ChiralScore {
-        if data.len() < 4 {
+        if data.len() < 4 || data.iter().any(|x| !x.is_finite()) {
             return ChiralScore { stability: 0.0, eta: 0.0, gamma: 0.0, class: StabilityClass::Unstable };
         }
 
@@ -293,6 +293,20 @@ mod tests {
         let (scores, worst) = v.score_batch(&[&natural, &noise]);
         assert_eq!(scores.len(), 2);
         assert!(worst != StabilityClass::Excellent);
+    }
+
+    #[test]
+    fn nan_input_is_unstable() {
+        let v = ChiralValidator::new();
+        let data = vec![1.0, 2.0, f64::NAN, 4.0, 5.0];
+        assert_eq!(v.score(&data).class, StabilityClass::Unstable);
+    }
+
+    #[test]
+    fn infinity_input_is_unstable() {
+        let v = ChiralValidator::new();
+        let data = vec![1.0, 2.0, f64::INFINITY, 4.0, 5.0];
+        assert_eq!(v.score(&data).class, StabilityClass::Unstable);
     }
 
     #[test]

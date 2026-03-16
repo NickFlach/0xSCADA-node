@@ -24,15 +24,26 @@ pub struct BerryAuditor {
     prev_angle: Option<f64>,
     /// Record of transitions for verification.
     transitions: Vec<StateTransition>,
+    /// Maximum stored transitions (oldest are evicted). 0 = unlimited.
+    #[serde(default)]
+    max_transitions: usize,
 }
 
 impl BerryAuditor {
     pub fn new() -> Self {
+        Self::with_capacity(0)
+    }
+
+    /// Create an auditor with a maximum number of stored transitions.
+    /// When exceeded, the oldest transition is evicted (phase is still accumulated).
+    /// Pass 0 for unlimited (not recommended in production).
+    pub fn with_capacity(max_transitions: usize) -> Self {
         Self {
             phase: 0.0,
             transition_count: 0,
             prev_angle: None,
             transitions: Vec::new(),
+            max_transitions,
         }
     }
 
@@ -100,6 +111,10 @@ impl BerryAuditor {
             from_state: from_state.to_vec(),
             to_state: to_state.to_vec(),
         });
+        // Evict oldest if over capacity
+        if self.max_transitions > 0 && self.transitions.len() > self.max_transitions {
+            self.transitions.remove(0);
+        }
     }
 
     /// Get the current accumulated Berry phase.

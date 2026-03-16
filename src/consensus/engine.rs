@@ -251,6 +251,26 @@ impl ConsensusEngine {
         self.kuramoto.peers()
     }
 
+    /// Set coupling strength (for adaptive tuning)
+    pub fn set_coupling(&mut self, coupling: f64) {
+        self.kuramoto.set_coupling(coupling);
+    }
+
+    /// Set chiral perturbation (for adaptive tuning)
+    pub fn set_chiral_eta(&mut self, eta: f64) {
+        self.kuramoto.set_chiral_eta(eta);
+    }
+
+    /// Get current coupling strength
+    pub fn coupling(&self) -> f64 {
+        self.kuramoto.coupling()
+    }
+
+    /// Get current chiral eta
+    pub fn chiral_eta(&self) -> f64 {
+        self.kuramoto.chiral_eta()
+    }
+
     /// Set chain state (for testing or initialization)
     pub fn set_chain_state(&mut self, height: u64, hash: [u8; 32]) {
         self.latest_height = height;

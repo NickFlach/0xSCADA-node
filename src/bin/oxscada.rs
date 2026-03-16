@@ -15,6 +15,8 @@ use oxscada_node::crypto::NodeKeypair;
 use oxscada_node::network::transport::Transport;
 use oxscada_node::bridge::{self, ScadaBridge, MAX_RECENT_EVENTS};
 use oxscada_node::node::{Node, NodeAction, NodeConfig, NodeEvent};
+use oxscada_node::tuner::{AdaptiveTuner, ConsensusMetrics, ParameterAdjustment, TuningConfig};
+use oxscada_node::telemetry::{self, TelemetryStatus, TelemetryTuning};
 
 #[derive(Parser)]
 #[command(name = "oxscada", about = "0xSCADA blockchain node")]
@@ -314,11 +316,32 @@ async fn run_node(config: Config) {
     // 5. Spawn tasks
     let shutdown = tokio::signal::ctrl_c();
 
+    // -- Telemetry publisher (optional, graceful degradation) --
+    let telemetry_publisher = if let Some(nats_url) = &config.nats_url {
+        let prefix = config.telemetry.as_ref()
+            .map(|t| t.subject_prefix.as_str())
+            .unwrap_or("scada.consensus");
+        telemetry::try_connect(nats_url, prefix, &hex(&node_id)).await
+    } else {
+        None
+    };
+    let telemetry_publisher = Arc::new(Mutex::new(telemetry_publisher));
+
+    // -- Adaptive tuner --
+    let tuner = Arc::new(Mutex::new(AdaptiveTuner::new(
+        TuningConfig::default(),
+        config.coupling_k,
+        config.chiral_eta,
+    )));
+
     // -- Tick loop --
     let tick_node = node.clone();
     let tick_peers = peers.clone();
     let block_time = config.block_time_ms;
     let tick_counter_ref = tick_counter.clone();
+    let tick_tuner = tuner.clone();
+    let tick_telemetry = telemetry_publisher.clone();
+    let tick_node_id_hex = hex(&node_id);
     let tick_handle = tokio::spawn(async move {
         let mut tick_count: u64 = 0;
         let mut interval = tokio::time::interval(tokio::time::Duration::from_millis(block_time));
@@ -331,9 +354,81 @@ async fn run_node(config: Config) {
                 let mut n = tick_node.lock().await;
                 let actions = n.handle_event(NodeEvent::Tick(ts));
                 let status = n.status();
+
+                // Feed metrics to adaptive tuner
+                let leader_id = n.consensus_leader().unwrap_or([0u8; 32]);
+                let metrics = ConsensusMetrics::new(
+                    status.order_parameter,
+                    status.mean_phase,
+                    status.local_phase,
+                    leader_id,
+                    true, // TODO: track actual attestation success
+                    status.connected_peers,
+                    status.latest_height,
+                    ts,
+                );
+
+                let mut t = tick_tuner.lock().await;
+                t.record(metrics);
+
+                // Check for parameter adjustments
+                if let Some(adjustment) = t.maybe_adjust() {
+                    match &adjustment {
+                        ParameterAdjustment::CouplingK(k) => {
+                            println!("[tuner] Adjusting coupling_k → {k:.4}");
+                            n.set_coupling(*k);
+                        }
+                        ParameterAdjustment::ChiralEta(eta) => {
+                            println!("[tuner] Adjusting chiral_eta → {eta:.4}");
+                            n.set_chiral_eta(*eta);
+                        }
+                        ParameterAdjustment::Both { coupling_k, chiral_eta } => {
+                            println!("[tuner] Adjusting coupling_k → {coupling_k:.4}, chiral_eta → {chiral_eta:.4}");
+                            n.set_coupling(*coupling_k);
+                            n.set_chiral_eta(*chiral_eta);
+                        }
+                    }
+
+                    // Publish tuning event
+                    let (ck, ce) = t.current_params();
+                    let tuning_msg = TelemetryTuning {
+                        node_id: tick_node_id_hex.clone(),
+                        coupling_k: ck,
+                        chiral_eta: ce,
+                        mean_r: status.order_parameter,
+                        adjustment: Some(format!("{:?}", adjustment)),
+                        timestamp_ms: ts,
+                    };
+                    let tp = tick_telemetry.lock().await;
+                    if let Some(ref pub_) = *tp {
+                        let _ = pub_.publish_tuning(&tuning_msg).await;
+                    }
+                }
+
+                // Publish status telemetry
+                if tick_count % 5 == 0 { // every 5 ticks to avoid flooding
+                    let (ck, ce) = t.current_params();
+                    let tel_status = TelemetryStatus {
+                        node_id: tick_node_id_hex.clone(),
+                        height: status.latest_height,
+                        role: status.role.clone(),
+                        order_parameter: status.order_parameter,
+                        mean_phase: status.mean_phase,
+                        local_phase: status.local_phase,
+                        peer_count: status.connected_peers,
+                        coupling_k: ck,
+                        chiral_eta: ce,
+                        timestamp_ms: ts,
+                    };
+                    let tp = tick_telemetry.lock().await;
+                    if let Some(ref pub_) = *tp {
+                        let _ = pub_.publish_status(&tel_status).await;
+                    }
+                }
+
                 println!(
-                    "[oxscada] Tick {tick_count}: role={}, r={:.3}, peers={}",
-                    status.role, status.order_parameter, status.connected_peers
+                    "[oxscada] Tick {tick_count}: role={}, r={:.3}, h={}, peers={}",
+                    status.role, status.order_parameter, status.latest_height, status.connected_peers
                 );
                 actions
             };

@@ -113,6 +113,26 @@ impl KuramotoEngine {
         &self.oscillators
     }
 
+    /// Set coupling strength (for adaptive tuning)
+    pub fn set_coupling(&mut self, coupling: f64) {
+        self.coupling = coupling;
+    }
+
+    /// Set chiral perturbation strength (for adaptive tuning)
+    pub fn set_chiral_eta(&mut self, eta: f64) {
+        self.chiral_eta = eta;
+    }
+
+    /// Get current coupling strength
+    pub fn coupling(&self) -> f64 {
+        self.coupling
+    }
+
+    /// Get current chiral eta
+    pub fn chiral_eta(&self) -> f64 {
+        self.chiral_eta
+    }
+
     fn chiral_perturbation(&self, index: usize, phase: f64) -> f64 {
         let sign = if self.oscillators[index].node_id[0] % 2 == 0 { 1.0 } else { -1.0 };
         self.chiral_eta * (2.0 * phase).sin() * sign

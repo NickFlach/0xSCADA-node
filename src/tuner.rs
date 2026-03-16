@@ -650,7 +650,7 @@ mod tests {
         assert_eq!(record.old_value, 1.0);
         assert_eq!(record.new_value, 1.05);
         assert!(record.reason.contains("Low order parameter"));
-        assert_eq!(record.mean_r_before, 0.3);
+        assert!((record.mean_r_before - 0.3).abs() < 1e-10, "expected ~0.3, got {}", record.mean_r_before);
     }
 
     #[test]
@@ -677,11 +677,11 @@ mod tests {
         match adjustment {
             Some(ParameterAdjustment::ChiralEta(new_eta)) => {
                 assert!(new_eta < 0.2);
-                assert_eq!(new_eta, 0.19); // 0.2 * 0.95
+                assert!((new_eta - 0.19).abs() < 1e-10, "expected ~0.19, got {new_eta}"); // 0.2 * 0.95
             }
             Some(ParameterAdjustment::Both { chiral_eta, .. }) => {
                 assert!(chiral_eta < 0.2);
-                assert_eq!(chiral_eta, 0.19);
+                assert!((chiral_eta - 0.19).abs() < 1e-10, "expected ~0.19, got {chiral_eta}");
             }
             _ => panic!("Expected eta adjustment for rapid leader changes"),
         }
@@ -711,11 +711,11 @@ mod tests {
         match adjustment {
             Some(ParameterAdjustment::ChiralEta(new_eta)) => {
                 assert!(new_eta > 0.2);
-                assert_eq!(new_eta, 0.21); // 0.2 * 1.05
+                assert!((new_eta - 0.21).abs() < 1e-10, "expected ~0.21, got {new_eta}"); // 0.2 * 1.05
             }
             Some(ParameterAdjustment::Both { chiral_eta, .. }) => {
                 assert!(chiral_eta > 0.2);
-                assert_eq!(chiral_eta, 0.21);
+                assert!((chiral_eta - 0.21).abs() < 1e-10, "expected ~0.21, got {chiral_eta}");
             }
             _ => panic!("Expected eta adjustment for stuck leader"),
         }
@@ -744,7 +744,7 @@ mod tests {
         match adjustment {
             Some(ParameterAdjustment::Both { coupling_k, chiral_eta }) => {
                 assert_eq!(coupling_k, 1.05); // Increased for low r
-                assert_eq!(chiral_eta, 0.21); // Increased for stuck leader
+                assert!((chiral_eta - 0.21).abs() < 1e-10, "expected ~0.21, got {chiral_eta}"); // Increased for stuck leader
             }
             _ => panic!("Expected both parameters to adjust"),
         }
@@ -757,7 +757,7 @@ mod tests {
         
         let (coupling, eta) = tuner.current_params();
         assert_eq!(coupling, 1.5);
-        assert_eq!(eta, 0.3);
+        assert!((eta - 0.3).abs() < 1e-10, "expected ~0.3, got {eta}");
     }
 
     #[test]

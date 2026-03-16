@@ -240,6 +240,21 @@ impl Node {
     pub fn node_id(&self) -> [u8; 32] {
         self.node_id
     }
+
+    /// Get the current consensus leader
+    pub fn consensus_leader(&self) -> Option<[u8; 32]> {
+        self.consensus.current_leader()
+    }
+
+    /// Set coupling strength (for adaptive tuning)
+    pub fn set_coupling(&mut self, k: f64) {
+        self.consensus.set_coupling(k);
+    }
+
+    /// Set chiral perturbation (for adaptive tuning)
+    pub fn set_chiral_eta(&mut self, eta: f64) {
+        self.consensus.set_chiral_eta(eta);
+    }
 }
 
 #[derive(Debug, Clone)]

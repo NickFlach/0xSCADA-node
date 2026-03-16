@@ -169,4 +169,4 @@ Runs on Oracle Cloud Free Tier (1 ARM OCPU, 6GB RAM) and old x86 laptops alike.
 
 ## License
 
-MIT
+[Space Child License v1.0](LICENSE.md)

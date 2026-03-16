@@ -22,6 +22,18 @@ pub struct Config {
     pub chiral_eta: f64,
     #[serde(default)]
     pub nats_url: Option<String>,
+    #[serde(default)]
+    pub telemetry: Option<TelemetryConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TelemetryConfig {
+    #[serde(default = "default_telemetry_enabled")]
+    pub enabled: bool,
+    #[serde(default = "default_telemetry_prefix")]
+    pub subject_prefix: String,
+    #[serde(default = "default_telemetry_interval")]
+    pub publish_interval_ticks: u64,
 }
 
 fn default_listen_addr() -> SocketAddr {
@@ -48,6 +60,18 @@ fn default_chiral_eta() -> f64 {
     0.01
 }
 
+fn default_telemetry_enabled() -> bool {
+    true
+}
+
+fn default_telemetry_prefix() -> String {
+    "scada.consensus".to_string()
+}
+
+fn default_telemetry_interval() -> u64 {
+    1
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -60,6 +84,7 @@ impl Default for Config {
             coupling_k: default_coupling_k(),
             chiral_eta: default_chiral_eta(),
             nats_url: None,
+            telemetry: None,
         }
     }
 }
@@ -142,6 +167,7 @@ mod tests {
             coupling_k: 1.5,
             chiral_eta: 0.05,
             nats_url: None,
+            telemetry: None,
         };
         let toml_str = cfg.to_toml().unwrap();
         let parsed: Config = toml::from_str(&toml_str).unwrap();
@@ -186,5 +212,74 @@ mod tests {
     fn test_load_or_default_missing() {
         let cfg = Config::load_or_default(Some(std::path::Path::new("/nonexistent/config.toml"))).unwrap();
         assert_eq!(cfg, Config::default());
+    }
+
+    #[test]
+    fn test_telemetry_config_defaults() {
+        let telemetry = TelemetryConfig {
+            enabled: default_telemetry_enabled(),
+            subject_prefix: default_telemetry_prefix(),
+            publish_interval_ticks: default_telemetry_interval(),
+        };
+        
+        assert_eq!(telemetry.enabled, true);
+        assert_eq!(telemetry.subject_prefix, "scada.consensus");
+        assert_eq!(telemetry.publish_interval_ticks, 1);
+    }
+
+    #[test]
+    fn test_config_toml_with_telemetry_section() {
+        let toml_str = r#"
+            rpc_port = 1234
+            
+            [telemetry]
+            enabled = false
+            subject_prefix = "custom.prefix"
+            publish_interval_ticks = 5
+        "#;
+        
+        let cfg: Config = toml::from_str(toml_str).unwrap();
+        assert_eq!(cfg.rpc_port, 1234);
+        
+        let telemetry = cfg.telemetry.unwrap();
+        assert_eq!(telemetry.enabled, false);
+        assert_eq!(telemetry.subject_prefix, "custom.prefix");
+        assert_eq!(telemetry.publish_interval_ticks, 5);
+    }
+
+    #[test]
+    fn test_config_toml_without_telemetry_section_backward_compat() {
+        let toml_str = r#"
+            rpc_port = 1234
+            coupling_k = 2.0
+        "#;
+        
+        let cfg: Config = toml::from_str(toml_str).unwrap();
+        assert_eq!(cfg.rpc_port, 1234);
+        assert_eq!(cfg.coupling_k, 2.0);
+        
+        // telemetry should be None when not specified in TOML
+        assert!(cfg.telemetry.is_none());
+        
+        // rest should be defaults
+        assert_eq!(cfg.listen_addr, "0.0.0.0:9000".parse().unwrap());
+        assert_eq!(cfg.block_time_ms, 5000);
+        assert_eq!(cfg.chiral_eta, 0.01);
+    }
+
+    #[test]
+    fn test_config_toml_partial_telemetry_uses_defaults() {
+        let toml_str = r#"
+            [telemetry]
+            enabled = false
+        "#;
+        
+        let cfg: Config = toml::from_str(toml_str).unwrap();
+        
+        let telemetry = cfg.telemetry.unwrap();
+        assert_eq!(telemetry.enabled, false);
+        // These should use defaults since not specified
+        assert_eq!(telemetry.subject_prefix, "scada.consensus");
+        assert_eq!(telemetry.publish_interval_ticks, 1);
     }
 }

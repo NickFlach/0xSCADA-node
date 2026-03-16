@@ -6,3 +6,4 @@ rpc_port = 9001
 block_time_ms = 5000
 coupling_k = 0.5
 chiral_eta = 0.1
+nats_url = "nats://swarm.ninja-portal.com:4222"

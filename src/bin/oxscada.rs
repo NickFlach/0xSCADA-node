@@ -140,6 +140,7 @@ async fn run_node(config: Config) {
         .try_into()
         .expect("Keypair file must be exactly 32 bytes");
     let keypair = NodeKeypair::from_bytes(&secret).expect("Invalid keypair bytes");
+    let bridge_keypair = NodeKeypair::from_bytes(&secret).expect("Invalid keypair bytes");
     let node_id = keypair.public_key().0;
     println!("[oxscada] Node ID: {}", hex(&node_id));
 
@@ -185,6 +186,7 @@ async fn run_node(config: Config) {
         let bridge_node = node.clone();
         let bridge_events = event_log.clone();
         let nats_url = nats_url.clone();
+        let bridge_kp = bridge_keypair;
         tokio::spawn(async move {
             println!("[oxscada] Connecting to NATS at {nats_url}...");
             let bridge = match ScadaBridge::connect(&nats_url).await {
@@ -206,7 +208,7 @@ async fn run_node(config: Config) {
             while let Some(msg) = sub.next().await {
                 match bridge::event_to_transaction(&msg.payload) {
                     Ok((body, record)) => {
-                        let tx = bridge::unsigned_transaction(body);
+                        let tx = oxscada_node::transaction::Transaction::new(body, &bridge_kp);
                         let hash_hex = &record.tx_hash;
                         println!(
                             "[oxscada] SCADA event: {} {} → tx {}",

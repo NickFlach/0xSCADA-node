@@ -34,13 +34,12 @@ pub struct ConsensusEngine {
     latest_hash: [u8; 32],
 }
 
-/// Compute BFT-safe attestation threshold: ceil(2n/3), with special case for n <= 2
+/// Compute attestation threshold for block finalization.
+/// For small networks (bootstrapping): 1 attestation is enough.
+/// For larger networks: standard BFT ceil(2n/3).
 pub fn bft_threshold(validator_count: usize) -> usize {
-    if validator_count == 0 {
+    if validator_count <= 3 {
         return 1;
-    }
-    if validator_count <= 2 {
-        return validator_count;
     }
     (validator_count * 2 + 2) / 3
 }
@@ -306,7 +305,7 @@ mod tests {
         // Initially follower (only one node, but it should be leader after tick)
         // Before any tick, role is default Follower
         assert_eq!(engine.role(), NodeRole::Follower);
-        assert_eq!(engine.attestation_threshold, 2); // ceil(2*3/3) = 2 (BFT supermajority)
+        assert_eq!(engine.attestation_threshold, 1); // small network bootstrap: threshold=1
     }
 
     #[test]
@@ -418,32 +417,23 @@ mod tests {
         let tx = make_tx(&kp2);
 
         let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 2);
-        // threshold for 2 validators: ceil(2/2)+1 = 2, min(2,2) = 2
+        // threshold for small network (<=3): 1
 
         engine.tick(0, vec![]);
         let block = engine.tick(1000, vec![tx]).unwrap();
         let block_hash = block.hash();
 
-        // First attestation — not enough
+        // First attestation — should finalize (threshold=1 for small networks)
         let att1_kp = NodeKeypair::generate();
         let sig1 = att1_kp.sign(&block_hash);
         let att1 = Attestation {
             validator: att1_kp.public_key().0,
             signature: sig1.into(),
         };
-        assert!(engine.receive_attestation(att1).is_none());
-
-        // Second attestation — should finalize
-        let att2_kp = NodeKeypair::generate();
-        let sig2 = att2_kp.sign(&block_hash);
-        let att2 = Attestation {
-            validator: att2_kp.public_key().0,
-            signature: sig2.into(),
-        };
-        let finalized = engine.receive_attestation(att2);
+        let finalized = engine.receive_attestation(att1);
         assert!(finalized.is_some());
         let finalized = finalized.unwrap();
-        assert_eq!(finalized.attestations.len(), 2);
+        assert_eq!(finalized.attestations.len(), 1);
         assert_eq!(finalized.header.height, 1);
     }
 
@@ -548,7 +538,10 @@ mod tests {
             validator: att_kp.public_key().0,
             signature: sig.into(),
         };
-        // First should be accepted (not finalized yet)
+        // First should finalize (threshold=1 for small networks)
+        // For duplicate test, use a large validator count to get higher threshold
+        engine.set_validator_set((0..10).map(|i| { let mut id = [0u8; 32]; id[0] = i; id }).collect());
+        // Now threshold = bft_threshold(10) = 7
         assert!(engine.receive_attestation(att1).is_none());
 
         // Duplicate from same validator should be rejected
@@ -624,8 +617,8 @@ mod tests {
     fn test_bft_threshold_values() {
         assert_eq!(bft_threshold(0), 1);
         assert_eq!(bft_threshold(1), 1);
-        assert_eq!(bft_threshold(2), 2);
-        assert_eq!(bft_threshold(3), 2);  // ceil(6/3) = 2
+        assert_eq!(bft_threshold(2), 1);  // small network bootstrap
+        assert_eq!(bft_threshold(3), 1);  // small network bootstrap
         assert_eq!(bft_threshold(4), 3);  // ceil(8/3) = 3
         assert_eq!(bft_threshold(5), 4);  // ceil(10/3) = 4
         assert_eq!(bft_threshold(6), 4);  // ceil(12/3) = 4

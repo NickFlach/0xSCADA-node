@@ -1,1 +1,16 @@
 [oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada] Failed to connect to 170.9.241.14:9000: connection error: timed out (retry in 1000ms)
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada-debug] Attestation received from cf49..., pending=true
+[consensus] Attestation ACCEPTED from cf49, count=1/1
+[oxscada] Failed to connect to 170.9.241.14:9000: connection error: timed out (retry in 2000ms)

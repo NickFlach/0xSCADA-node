@@ -162,19 +162,23 @@ impl ConsensusEngine {
 
         // Reject attestations from unknown validators (if validator set is configured)
         if !self.validator_set.is_empty() && !self.validator_set.contains(&attestation.validator) {
+            eprintln!("[consensus] Attestation rejected: unknown validator {:02x}{:02x}", attestation.validator[0], attestation.validator[1]);
             return None;
         }
 
         // Reject duplicate attestations from the same validator
         if pending.attestations.iter().any(|a| a.validator == attestation.validator) {
+            eprintln!("[consensus] Attestation rejected: duplicate from {:02x}{:02x}", attestation.validator[0], attestation.validator[1]);
             return None;
         }
 
         // Verify attestation signature against our pending block hash
         let block_hash = pending.block.hash();
         if !attestation.verify(&block_hash) {
+            eprintln!("[consensus] Attestation rejected: bad signature from {:02x}{:02x}", attestation.validator[0], attestation.validator[1]);
             return None;
         }
+        eprintln!("[consensus] Attestation ACCEPTED from {:02x}{:02x}, count={}/{}", attestation.validator[0], attestation.validator[1], pending.attestations.len() + 1, self.attestation_threshold);
 
         pending.attestations.push(attestation);
 

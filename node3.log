@@ -1,13 +1,169 @@
-Starting 0xSCADA node with configuration:
-listen_addr = "0.0.0.0:9000"
-seed_peers = [
-    "170.9.238.136:9000",
-    "170.9.241.14:9000",
-]
-keypair_path = "node3-keypair.bin"
-data_dir = "./oxscada-data"
-rpc_port = 9001
-block_time_ms = 5000
-coupling_k = 0.5
-chiral_eta = 0.1
-
+[oxscada] Node ID: e79dd4625f8f63a7238cd2d515edb8058197062a2cb8bf50f93b3dc57b37d220
+[oxscada] Listening on 0.0.0.0:9000
+[oxscada] RPC on port 9001 (not yet implemented)
+[oxscada] Node running. Press Ctrl+C to shutdown.
+[oxscada] Tick 1: role=leader, r=1.000, peers=0
+[oxscada] Connected to peer 170.9.241.14:9000
+[oxscada] Connected to peer 170.9.238.136:9000
+[oxscada] Tick 2: role=leader, r=0.547, peers=1
+[oxscada] Tick 3: role=follower, r=0.551, peers=1
+[oxscada] Tick 4: role=follower, r=0.551, peers=1
+[oxscada] Tick 5: role=follower, r=0.530, peers=1
+[oxscada] Tick 6: role=follower, r=0.382, peers=1
+[oxscada] Tick 7: role=follower, r=0.512, peers=1
+[oxscada] Tick 8: role=follower, r=0.526, peers=1
+[oxscada] Tick 9: role=follower, r=0.400, peers=1
+[oxscada] Tick 10: role=follower, r=0.533, peers=1
+[oxscada] Tick 11: role=follower, r=0.512, peers=1
+[oxscada] Tick 12: role=follower, r=0.380, peers=1
+[oxscada] Tick 13: role=follower, r=0.532, peers=1
+[oxscada] Tick 14: role=follower, r=0.549, peers=1
+[oxscada] Tick 15: role=follower, r=0.404, peers=1
+[oxscada] Tick 16: role=follower, r=0.557, peers=1
+[oxscada] Tick 17: role=follower, r=0.595, peers=1
+[oxscada] Tick 18: role=follower, r=0.449, peers=1
+[oxscada] Tick 19: role=follower, r=0.507, peers=1
+[oxscada] Tick 20: role=follower, r=0.529, peers=1
+[oxscada] Tick 21: role=follower, r=0.447, peers=1
+[oxscada] Tick 22: role=leader, r=0.420, peers=1
+[oxscada] Tick 23: role=leader, r=0.382, peers=1
+[oxscada] Tick 24: role=leader, r=0.375, peers=1
+[oxscada] Tick 25: role=leader, r=0.376, peers=1
+[oxscada] Tick 26: role=leader, r=0.379, peers=1
+[oxscada] Tick 27: role=leader, r=0.380, peers=1
+[oxscada] Tick 28: role=leader, r=0.383, peers=1
+[oxscada] Tick 29: role=leader, r=0.392, peers=1
+[oxscada] Tick 30: role=leader, r=0.412, peers=1
+[oxscada] Tick 31: role=leader, r=0.442, peers=1
+[oxscada] Tick 32: role=leader, r=0.481, peers=1
+[oxscada] Tick 33: role=follower, r=0.533, peers=1
+[oxscada] Tick 34: role=follower, r=0.594, peers=1
+[oxscada] Tick 35: role=follower, r=0.658, peers=1
+[oxscada] Tick 36: role=follower, r=0.715, peers=1
+[oxscada] Tick 37: role=follower, r=0.755, peers=1
+[oxscada] Tick 38: role=follower, r=0.781, peers=1
+[oxscada] Tick 39: role=follower, r=0.798, peers=1
+[oxscada] Tick 40: role=follower, r=0.813, peers=1
+[oxscada] Tick 41: role=follower, r=0.833, peers=1
+[oxscada] Tick 42: role=follower, r=0.855, peers=1
+[oxscada] Tick 43: role=follower, r=0.862, peers=1
+[oxscada] Tick 44: role=follower, r=0.842, peers=1
+[oxscada] Tick 45: role=follower, r=0.808, peers=1
+[oxscada] Tick 46: role=follower, r=0.777, peers=1
+[oxscada] Tick 47: role=follower, r=0.744, peers=1
+[oxscada] Tick 48: role=follower, r=0.707, peers=1
+[oxscada] Tick 49: role=follower, r=0.674, peers=1
+[oxscada] Tick 50: role=follower, r=0.649, peers=1
+[oxscada] Tick 51: role=follower, r=0.625, peers=1
+[oxscada] Tick 52: role=follower, r=0.592, peers=1
+[oxscada] Tick 53: role=follower, r=0.549, peers=1
+[oxscada] Tick 54: role=follower, r=0.496, peers=1
+[oxscada] Tick 55: role=leader, r=0.446, peers=1
+[oxscada] Tick 56: role=leader, r=0.409, peers=1
+[oxscada] Tick 57: role=leader, r=0.382, peers=1
+[oxscada] Tick 58: role=leader, r=0.374, peers=1
+[oxscada] Tick 59: role=leader, r=0.374, peers=1
+[oxscada] Tick 60: role=leader, r=0.378, peers=1
+[oxscada] Tick 61: role=leader, r=0.386, peers=1
+[oxscada] Tick 62: role=leader, r=0.393, peers=1
+[oxscada] Tick 63: role=leader, r=0.408, peers=1
+[oxscada] Tick 64: role=leader, r=0.433, peers=1
+[oxscada] Tick 65: role=leader, r=0.471, peers=1
+[oxscada] Tick 66: role=follower, r=0.524, peers=1
+[oxscada] Tick 67: role=follower, r=0.589, peers=1
+[oxscada] Tick 68: role=follower, r=0.654, peers=1
+[oxscada] Tick 69: role=follower, r=0.707, peers=1
+[oxscada] Tick 70: role=follower, r=0.747, peers=1
+[oxscada] Tick 71: role=follower, r=0.776, peers=1
+[oxscada] Tick 72: role=follower, r=0.799, peers=1
+[oxscada] Tick 73: role=follower, r=0.817, peers=1
+[oxscada] Tick 74: role=follower, r=0.832, peers=1
+[oxscada] Tick 75: role=follower, r=0.848, peers=1
+[oxscada] Tick 76: role=follower, r=0.859, peers=1
+[oxscada] Tick 77: role=follower, r=0.853, peers=1
+[oxscada] Tick 78: role=follower, r=0.818, peers=1
+[oxscada] Tick 79: role=follower, r=0.775, peers=1
+[oxscada] Tick 80: role=follower, r=0.739, peers=1
+[oxscada] Tick 81: role=follower, r=0.707, peers=1
+[oxscada] Tick 82: role=follower, r=0.678, peers=1
+[oxscada] Tick 83: role=follower, r=0.653, peers=1
+[oxscada] Tick 84: role=follower, r=0.624, peers=1
+[oxscada] Tick 85: role=follower, r=0.592, peers=1
+[oxscada] Tick 86: role=follower, r=0.547, peers=1
+[oxscada] Tick 87: role=follower, r=0.497, peers=1
+[oxscada] Tick 88: role=leader, r=0.447, peers=1
+[oxscada] Tick 89: role=leader, r=0.409, peers=1
+[oxscada] Tick 90: role=leader, r=0.382, peers=1
+[oxscada] Tick 91: role=leader, r=0.374, peers=1
+[oxscada] Tick 92: role=leader, r=0.373, peers=1
+[oxscada] Tick 93: role=leader, r=0.378, peers=1
+[oxscada] Tick 94: role=leader, r=0.383, peers=1
+[oxscada] Tick 95: role=leader, r=0.391, peers=1
+[oxscada] Tick 96: role=leader, r=0.409, peers=1
+[oxscada] Tick 97: role=leader, r=0.433, peers=1
+[oxscada] Tick 98: role=leader, r=0.467, peers=1
+[oxscada] Tick 99: role=follower, r=0.517, peers=1
+[oxscada] Tick 100: role=follower, r=0.581, peers=1
+[oxscada] Tick 101: role=follower, r=0.651, peers=1
+[oxscada] Tick 102: role=follower, r=0.708, peers=1
+[oxscada] Tick 103: role=follower, r=0.747, peers=1
+[oxscada] Tick 104: role=follower, r=0.773, peers=1
+[oxscada] Tick 105: role=follower, r=0.795, peers=1
+[oxscada] Tick 106: role=follower, r=0.815, peers=1
+[oxscada] Tick 107: role=follower, r=0.834, peers=1
+[oxscada] Tick 108: role=follower, r=0.851, peers=1
+[oxscada] Tick 109: role=follower, r=0.857, peers=1
+[oxscada] Tick 110: role=follower, r=0.845, peers=1
+[oxscada] Tick 111: role=follower, r=0.822, peers=1
+[oxscada] Tick 112: role=follower, r=0.788, peers=1
+[oxscada] Tick 113: role=follower, r=0.743, peers=1
+[oxscada] Tick 114: role=follower, r=0.708, peers=1
+[oxscada] Tick 115: role=follower, r=0.679, peers=1
+[oxscada] Tick 116: role=follower, r=0.656, peers=1
+[oxscada] Tick 117: role=follower, r=0.631, peers=1
+[oxscada] Tick 118: role=follower, r=0.599, peers=1
+[oxscada] Tick 119: role=follower, r=0.553, peers=1
+[oxscada] Tick 120: role=follower, r=0.502, peers=1
+[oxscada] Tick 121: role=follower, r=0.455, peers=1
+[oxscada] Tick 122: role=leader, r=0.412, peers=1
+[oxscada] Tick 123: role=leader, r=0.388, peers=1
+[oxscada] Tick 124: role=leader, r=0.373, peers=1
+[oxscada] Tick 125: role=leader, r=0.370, peers=1
+[oxscada] Tick 126: role=leader, r=0.374, peers=1
+[oxscada] Tick 127: role=leader, r=0.382, peers=1
+[oxscada] Tick 128: role=leader, r=0.391, peers=1
+[oxscada] Tick 129: role=leader, r=0.406, peers=1
+[oxscada] Tick 130: role=leader, r=0.427, peers=1
+[oxscada] Tick 131: role=leader, r=0.459, peers=1
+[oxscada] Tick 132: role=follower, r=0.506, peers=1
+[oxscada] Tick 133: role=follower, r=0.568, peers=1
+[oxscada] Tick 134: role=follower, r=0.638, peers=1
+[oxscada] Tick 135: role=follower, r=0.699, peers=1
+[oxscada] Tick 136: role=follower, r=0.740, peers=1
+[oxscada] Tick 137: role=follower, r=0.769, peers=1
+[oxscada] Tick 138: role=follower, r=0.792, peers=1
+[oxscada] Tick 139: role=follower, r=0.811, peers=1
+[oxscada] Tick 140: role=follower, r=0.830, peers=1
+[oxscada] Tick 141: role=follower, r=0.847, peers=1
+[oxscada] Tick 142: role=follower, r=0.857, peers=1
+[oxscada] Tick 143: role=follower, r=0.852, peers=1
+[oxscada] Tick 144: role=follower, r=0.827, peers=1
+[oxscada] Tick 145: role=follower, r=0.792, peers=1
+[oxscada] Tick 146: role=follower, r=0.750, peers=1
+[oxscada] Tick 147: role=follower, r=0.714, peers=1
+[oxscada] Tick 148: role=follower, r=0.684, peers=1
+[oxscada] Tick 149: role=follower, r=0.659, peers=1
+[oxscada] Tick 150: role=follower, r=0.635, peers=1
+[oxscada] Tick 151: role=follower, r=0.605, peers=1
+[oxscada] Tick 152: role=follower, r=0.560, peers=1
+[oxscada] Tick 153: role=follower, r=0.511, peers=1
+[oxscada] Tick 154: role=follower, r=0.461, peers=1
+[oxscada] Tick 155: role=leader, r=0.418, peers=1
+[oxscada] Tick 156: role=leader, r=0.390, peers=1
+[oxscada] Tick 157: role=leader, r=0.376, peers=1
+[oxscada] Tick 158: role=leader, r=0.370, peers=1
+[oxscada] Tick 159: role=leader, r=0.374, peers=1
+[oxscada] Tick 160: role=leader, r=0.380, peers=1
+[oxscada] Tick 161: role=leader, r=0.392, peers=1
+[oxscada] Tick 162: role=leader, r=0.403, peers=1
+[oxscada] Tick 163: role=leader, r=0.423, peers=1

@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -163,8 +164,16 @@ async fn run_node(config: Config) {
     let transport = Arc::new(transport);
     println!("[oxscada] Listening on {}", transport.local_addr());
 
-    // RPC stub
-    println!("[oxscada] RPC on port {} (not yet implemented)", config.rpc_port);
+    // RPC server
+    let tick_counter = Arc::new(AtomicU64::new(0));
+    let rpc_ticks = tick_counter.clone();
+    let rpc_node = node.clone();
+    let rpc_port = config.rpc_port;
+    tokio::spawn(async move {
+        if let Err(e) = oxscada_node::rpc::run_rpc_server(rpc_port, rpc_node, rpc_ticks).await {
+            eprintln!("[oxscada] RPC server error: {e}");
+        }
+    });
 
     // 4. Shared peer connections
     let peers: PeerMap = Arc::new(Mutex::new(HashMap::new()));
@@ -176,12 +185,14 @@ async fn run_node(config: Config) {
     let tick_node = node.clone();
     let tick_peers = peers.clone();
     let block_time = config.block_time_ms;
+    let tick_counter_ref = tick_counter.clone();
     let tick_handle = tokio::spawn(async move {
         let mut tick_count: u64 = 0;
         let mut interval = tokio::time::interval(tokio::time::Duration::from_millis(block_time));
         loop {
             interval.tick().await;
             tick_count += 1;
+            tick_counter_ref.store(tick_count, Ordering::Relaxed);
             let ts = now_ms();
             let actions = {
                 let mut n = tick_node.lock().await;

@@ -119,6 +119,44 @@ max_transactions_per_block = 1000
 oxscada --config node.toml run
 ```
 
+## Running a 3-Node Local Network
+
+Generate three keypairs and create configs:
+
+```bash
+oxscada keygen --output node1.key
+oxscada keygen --output node2.key
+oxscada keygen --output node3.key
+```
+
+Create `node1.toml`, `node2.toml`, `node3.toml` — each with a unique `node_id`, `listen_addr`, `rpc_port`, and `storage_path`, and seed peers pointing to each other:
+
+```toml
+# node1.toml
+node_id = "alpha"
+listen_addr = "127.0.0.1:4433"
+rpc_port = 8545
+storage_path = "./data/node1"
+keypair_path = "./node1.key"
+seed_peers = ["127.0.0.1:4434", "127.0.0.1:4435"]
+block_time_ms = 5000
+coupling_k = 0.5
+chiral_eta = 0.1
+
+# node2.toml — listen_addr = "127.0.0.1:4434", rpc_port = 8546, etc.
+# node3.toml — listen_addr = "127.0.0.1:4435", rpc_port = 8547, etc.
+```
+
+Start each node in a separate terminal:
+
+```bash
+oxscada --config node1.toml run
+oxscada --config node2.toml run
+oxscada --config node3.toml run
+```
+
+The nodes will discover each other via QUIC, synchronize phases, and begin producing blocks once the Kuramoto order parameter **r** exceeds the coherence threshold. Monitor consensus health via the RPC `get_status` endpoint on any node.
+
 ## CLI Usage
 
 ```

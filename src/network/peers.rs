@@ -19,21 +19,21 @@ pub struct PeerInfo {
 }
 
 pub struct PeerManager {
-    local_id: [u8; 32],
+    _local_id: [u8; 32],
     peers: HashMap<[u8; 32], PeerInfo>,
     seed_addrs: Vec<SocketAddr>,
     max_reconnect_attempts: u32,
-    reconnect_delay_ms: u64,
+    _reconnect_delay_ms: u64,
 }
 
 impl PeerManager {
     pub fn new(local_id: [u8; 32], seed_addrs: Vec<SocketAddr>) -> Self {
         Self {
-            local_id,
+            _local_id: local_id,
             peers: HashMap::new(),
             seed_addrs,
             max_reconnect_attempts: 5,
-            reconnect_delay_ms: 1000,
+            _reconnect_delay_ms: 1000,
         }
     }
 

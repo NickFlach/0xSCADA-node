@@ -143,7 +143,7 @@ impl SparseMerkleTree {
         let mut siblings = Vec::with_capacity(DEPTH);
 
         for d in (0..DEPTH).rev() {
-            let bit = get_bit(key, d);
+            let _bit = get_bit(key, d);
             let mut sibling_key = *key;
             let byte = d / 8;
             let bit_pos = 7 - (d % 8);

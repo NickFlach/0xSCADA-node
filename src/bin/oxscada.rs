@@ -77,6 +77,7 @@ impl PeerRegistry {
         node_id
     }
 
+    #[allow(dead_code)]
     fn get_connection_by_addr(&self, addr: SocketAddr) -> Option<&Connection> {
         self.by_addr.get(&addr)
     }
@@ -96,6 +97,7 @@ impl PeerRegistry {
         self.by_addr.iter()
     }
 
+    #[allow(dead_code)]
     fn len(&self) -> usize {
         self.by_addr.len()
     }
@@ -559,9 +561,9 @@ async fn spawn_reader(
     addr: SocketAddr,
     node: Arc<Mutex<Node>>,
     peers: PeerMap,
-    local_node_id: [u8; 32],
+    _local_node_id: [u8; 32],
 ) {
-    let mut peer_node_id: Option<[u8; 32]> = None;
+    let mut _peer_node_id: Option<[u8; 32]> = None;
     let mut first_message = true;
     
     loop {
@@ -572,7 +574,7 @@ async fn spawn_reader(
                         // Handle handshake: first PhaseUpdate message establishes peer identity
                         if first_message {
                             if let ConsensusMessage::PhaseUpdate { node_id, .. } = &msg {
-                                peer_node_id = Some(*node_id);
+                                _peer_node_id = Some(*node_id);
                                 peers.lock().await.register_node_id(addr, *node_id);
                                 
                                 // Now notify node of the real peer connection

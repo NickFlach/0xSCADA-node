@@ -432,7 +432,7 @@ mod tests {
     #[test]
     fn test_attestation_finalizes_block() {
         let kp = NodeKeypair::generate();
-        let node_id = kp.public_key().0;
+        let _node_id = kp.public_key().0;
         let tx_kp = NodeKeypair::generate();
         let tx = make_tx(&tx_kp);
 

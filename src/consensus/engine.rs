@@ -586,7 +586,7 @@ mod tests {
     #[test]
     fn test_raft_fallback_activates_on_low_r() {
         let kp = NodeKeypair::generate();
-        let local_id = make_id_from_keypair(&kp);
+        let _local_id = make_id_from_keypair(&kp);
         let mut engine = ConsensusEngine::new(kp, 0.0, 0.0, 1000, 1);
 
         // Add many peers at wildly different phases to get low r
@@ -623,7 +623,7 @@ mod tests {
         let mut engine = ConsensusEngine::new(kp, 1.0, 0.0, 1000, 1);
 
         engine.tick(0, vec![]);
-        let block = engine.tick(1000, vec![tx]).unwrap();
+        let _block = engine.tick(1000, vec![tx]).unwrap();
         assert!(engine.pending.is_some());
 
         // Tick past 10 second timeout

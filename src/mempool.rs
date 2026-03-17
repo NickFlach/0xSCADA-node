@@ -210,12 +210,13 @@ mod tests {
     #[test]
     fn test_mempool_full() {
         let mut pool = Mempool::new();
+        let kp = NodeKeypair::generate(); // reuse one keypair for speed
         for i in 0..MAX_MEMPOOL_SIZE {
             let body = TransactionBody::Extension {
                 module_id: [0; 32],
                 payload: (i as u32).to_le_bytes().to_vec(),
             };
-            assert!(pool.insert(make_tx(body)));
+            assert!(pool.insert(Transaction::new(body, &kp)));
         }
         assert_eq!(pool.len(), MAX_MEMPOOL_SIZE);
         assert!(!pool.insert(make_tx(extension_body(99))));

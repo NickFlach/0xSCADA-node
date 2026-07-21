@@ -9,13 +9,23 @@ use crate::transaction::{Transaction, TransactionBody};
 pub const MAX_RECENT_EVENTS: usize = 100;
 
 /// A SCADA event as received from NATS.
+///
+/// Canonical wire schema (issue 0xSCADA#440): snake_case, defined in
+/// `0xSCADA/shared/wire-schema/scada-event.ts` and pinned by twin fixtures
+/// on both sides (`test_canonical_wire_fixture` here). The `alias` /
+/// `default` attributes are a TRANSITIONAL net for legacy camelCase
+/// publishers (`AnchorableEvent`) — remove once every publisher goes
+/// through the shared schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScadaEvent {
+    #[serde(default)]
     pub asset: String,
+    #[serde(alias = "eventType")]
     pub event_type: String,
+    #[serde(alias = "siteId")]
     pub site_id: String,
     pub timestamp: String,
-    #[serde(default)]
+    #[serde(default, alias = "data")]
     pub payload: serde_json::Value,
 }
 
@@ -139,5 +149,42 @@ mod tests {
     #[test]
     fn test_bad_json() {
         assert!(event_to_transaction(b"not json").is_err());
+    }
+
+    /// Twin contract fixture (issue 0xSCADA#440): byte-identical to the JSON
+    /// asserted by `0xSCADA/shared/wire-schema/__tests__/scada-event.test.ts`.
+    /// If you change it here, change it there in the same commit.
+    #[test]
+    fn test_canonical_wire_fixture() {
+        let fixture = r#"{"asset":"TR-MAIN-01","event_type":"BREAKER_TRIP","site_id":"site-1","timestamp":"2026-03-15T22:00:00Z","payload":{"voltage":138.5},"site_name":"Substation Alpha","asset_type":"BREAKER","details":"Breaker tripped on overcurrent"}"#;
+
+        let (body, record) = event_to_transaction(fixture.as_bytes()).unwrap();
+        assert!(matches!(body, TransactionBody::AnchorBatch { event_count: 1, .. }));
+        assert_eq!(record.asset, "TR-MAIN-01");
+        assert_eq!(record.event_type, "BREAKER_TRIP");
+        assert_eq!(record.site_id, "site-1");
+        assert_eq!(record.timestamp, "2026-03-15T22:00:00Z");
+        // Extra context fields (site_name, asset_type, details) are ignored.
+    }
+
+    /// Transitional net: legacy camelCase publishers (AnchorableEvent shape)
+    /// still parse via serde aliases instead of being dropped silently.
+    #[test]
+    fn test_legacy_camelcase_alias_net() {
+        let legacy = r#"{
+            "id": "evt-1",
+            "eventType": "BREAKER_TRIP",
+            "siteId": "site-1",
+            "timestamp": "2026-03-15T22:00:00Z",
+            "severity": "critical",
+            "message": "Breaker tripped",
+            "data": {"voltage": 138.5}
+        }"#;
+
+        let (_, record) = event_to_transaction(legacy.as_bytes()).unwrap();
+        assert_eq!(record.event_type, "BREAKER_TRIP");
+        assert_eq!(record.site_id, "site-1");
+        // Legacy shape has no asset field; the default is empty, not an error.
+        assert_eq!(record.asset, "");
     }
 }

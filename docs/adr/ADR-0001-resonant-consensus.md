@@ -4,6 +4,13 @@
 **Date:** 2026-03-15
 **Authors:** Nick Flach, Kannaka
 
+> **Naming note (issue 0xSCADA#441):** this Kuramoto-BFT design — phase-coupled
+> oscillators, Raft fallback, ed25519 attestations — is the **canonical**
+> "Resonant Consensus" and is what the Rust node implements. An earlier,
+> unrelated BLS-aggregate-signature proposal once shared the name; it was never
+> adopted and is archived in the main repo at
+> `0xSCADA/docs/archive/resonant-consensus-bls-proposal.md`.
+
 ## Context
 
 0xSCADA needs a consensus mechanism for a permissioned blockchain that audits industrial SCADA systems. The network is small (3–4 validators), resource-constrained (1 ARM OCPU / 6GB RAM per node), and prioritizes auditability over throughput.

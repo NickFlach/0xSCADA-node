@@ -32,7 +32,9 @@ pub struct TelemetryPublisher {
 
 impl TelemetryPublisher {
     pub async fn connect(nats_url: &str, prefix: &str, node_id: &str) -> Result<Self, async_nats::ConnectError> {
-        let client = async_nats::connect(nats_url).await?;
+        // Credentialed — see nats_auth. This publisher is the reason the fix
+        // exists: its scada.consensus.* publishes were being refused.
+        let client = crate::nats_auth::connect(nats_url).await?;
         Ok(Self {
             client,
             prefix: prefix.to_string(),

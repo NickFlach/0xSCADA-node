@@ -1,4 +1,5 @@
 pub mod config;
+pub mod nats_auth;
 pub mod crypto;
 pub mod transaction;
 pub mod block;

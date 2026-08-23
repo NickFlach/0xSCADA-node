@@ -55,7 +55,10 @@ pub struct ScadaBridge {
 impl ScadaBridge {
     /// Connect to a NATS server.
     pub async fn connect(nats_url: &str) -> Result<Self, async_nats::ConnectError> {
-        let client = async_nats::connect(nats_url).await?;
+        // Credentialed: a plain `async_nats::connect` sends no credentials, so
+        // on an authorizing broker this lands on the anonymous user and every
+        // publish is refused server-side without the client ever noticing.
+        let client = crate::nats_auth::connect(nats_url).await?;
         Ok(Self { client })
     }
 
